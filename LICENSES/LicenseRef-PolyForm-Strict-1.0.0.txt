@@ -1,0 +1,7 @@
+Calq Dev is licensed under:
+
+SPDX-License-Identifier: LicenseRef-PolyForm-Strict-1.0.0 WITH LicenseRef-Calq-Commercial-Grant
+
+1. PolyForm Strict License 1.0.0 with Calq Commercial Use Grant
+   See: LICENSES/LicenseRef-PolyForm-Strict-1.0.0.txt
+   See: LICENSES/LicenseRef-Calq-Commercial-Grant.txt

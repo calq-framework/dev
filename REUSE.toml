@@ -1,0 +1,6 @@
+version = 1
+
+[[annotations]]
+path = "**"
+SPDX-FileCopyrightText = "2026-2026 Calq Framework"
+SPDX-License-Identifier = "LicenseRef-PolyForm-Strict-1.0.0 WITH LicenseRef-Calq-Commercial-Grant"

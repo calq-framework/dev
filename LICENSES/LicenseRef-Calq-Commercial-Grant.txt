@@ -1,0 +1,104 @@
+Calq Framework Commercial Use Grant
+
+Version 1.0.0
+
+https://github.com/calq-framework/license
+
+TERMS AND CONDITIONS
+
+1. Purpose
+
+This additional permission ("Commercial Use Grant") supplements the
+PolyForm Strict License 1.0.0 under which the Software is made
+available. It extends the permitted purposes of the base license to
+include commercial use, while preserving all other restrictions of
+the base license.
+
+2. Definitions
+
+"Commercial Use" means use of the Software in connection with any
+activity directed toward commercial advantage or monetary
+compensation, including but not limited to use in development,
+testing, staging, production, or deployment environments operated
+by or on behalf of a Commercial Entity.
+
+"Commercial Entity" means any individual, sole proprietorship,
+partnership, corporation, limited liability company, or other
+organization that engages in activity directed toward commercial
+advantage or monetary compensation, or that employs more than one
+individual.
+
+3. Grant
+
+Notwithstanding the noncommercial restriction in the base license,
+the Licensor grants you a non-exclusive, non-transferable,
+royalty-free, worldwide copyright and patent license to use the
+Software for Commercial Use, subject to all other terms and
+conditions of the base license.
+
+4. Preservation of Base License Restrictions
+
+This Commercial Use Grant does not modify, relax, or waive any
+restriction of the base license other than the limitation of
+permitted purposes to noncommercial use. In particular, and without
+limitation:
+
+a. You may NOT distribute, redistribute, publish, sublicense, sell,
+   or otherwise make available copies of the Software to any third
+   party.
+
+b. You may NOT modify, adapt, alter, translate, create derivative
+   works of, reverse engineer, decompile, or disassemble the
+   Software.
+
+c. You may NOT remove, alter, or obscure any copyright notices,
+   license notices, or this Commercial Use Grant from the Software.
+
+5. Scope of Use
+
+This Commercial Use Grant permits you to:
+
+a. Use the Software internally within your organization for any
+   lawful commercial purpose.
+
+b. Use the Software as a dependency, tool, or component in your
+   development workflow, provided such use does not result in
+   distribution of the Software itself.
+
+c. Deploy the Software in any internal environment, including
+   development, testing, staging, and production, provided the
+   Software is not made available to third parties as a standalone
+   offering.
+
+6. No Redistribution
+
+Nothing in this Commercial Use Grant grants any right to
+distribute, sublicense, or otherwise transfer copies of the
+Software to any third party. Third parties who wish to use the
+Software must obtain their own copy directly from the Licensor or
+an authorized distribution channel.
+
+7. No Warranty
+
+THE SOFTWARE IS PROVIDED UNDER THIS COMMERCIAL USE GRANT "AS IS",
+WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT
+LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+LICENSOR BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY
+ARISING FROM THE USE OF THE SOFTWARE UNDER THIS COMMERCIAL USE
+GRANT.
+
+8. Termination
+
+This Commercial Use Grant is effective perpetually unless
+terminated. Your rights under this Commercial Use Grant terminate
+automatically if you fail to comply with any of its terms or the
+terms of the base license. Upon termination, you must cease all use
+of the Software.
+
+9. Severability
+
+If any provision of this Commercial Use Grant is held to be
+unenforceable, such provision shall be reformed only to the extent
+necessary to make it enforceable, and the remaining provisions
+shall continue in full force and effect.
