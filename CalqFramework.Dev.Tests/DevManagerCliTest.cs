@@ -45,6 +45,18 @@ public class DevManagerCliTest {
     }
 
     [Fact]
+    public void Execute_ConfigHelp_ContainsSubcommands() {
+        var output = new StringWriter();
+        var cli = new CommandLineInterface { InterfaceOut = output };
+        cli.Execute(new DevManager(), ["config", "--help"]);
+
+        string helpText = output.ToString();
+        Assert.Contains("path", helpText, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("push", helpText, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("pull", helpText, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
     public void Execute_NewHelp_ContainsParameters() {
         var output = new StringWriter();
         var cli = new CommandLineInterface { InterfaceOut = output };

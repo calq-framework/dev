@@ -1,7 +1,15 @@
-﻿using CalqFramework.Dev;
+﻿using CalqFramework.Config.Json;
+using CalqFramework.Dev;
+using CalqFramework.Dev.Config;
+
+string configDir = Environment.GetEnvironmentVariable("CODESPACES") == "true"
+    ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "dotfiles", ".config", "dev")
+    : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "dev");
+
+var config = new JsonConfigurationRegistry<MasterPreset>(configDir);
 
 try {
-    object? result = new CommandLineInterface().Execute(new DevManager());
+    object? result = new CommandLineInterface().Execute(new DevManager(config));
     switch (result) {
         case ValueTuple:
             break;

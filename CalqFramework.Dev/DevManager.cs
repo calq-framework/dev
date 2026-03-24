@@ -11,8 +11,11 @@ namespace CalqFramework.Dev;
 public class DevManager {
     private readonly JsonConfigurationRegistry<MasterPreset> _config;
 
-    public DevManager() => _config = new();
-    public DevManager(JsonConfigurationRegistry<MasterPreset> config) => _config = config;
+    public DevManager() : this(new()) { }
+    public DevManager(JsonConfigurationRegistry<MasterPreset> config) {
+        _config = config;
+        Config = new ConfigManager(config);
+    }
 
     // ── Preflight ──
 
@@ -54,6 +57,13 @@ public class DevManager {
             return [];
         }
     }
+
+    // ── Submodules ──
+
+    /// <summary>
+    ///     Configuration management (path, push, pull).
+    /// </summary>
+    public ConfigManager Config { get; }
 
     // ── Subcommands ──
 
@@ -311,13 +321,6 @@ public class DevManager {
         foreach (string step in cfg.Issues) {
             RUN(step);
         }
-    }
-
-    /// <summary>
-    ///     Prints the configuration directory path.
-    /// </summary>
-    public void Config() {
-        Console.WriteLine(_config.ConfigDir);
     }
 
     // ── Helpers ──
