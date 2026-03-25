@@ -54,6 +54,7 @@ public class DevManagerCliTest {
         Assert.Contains("path", helpText, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("push", helpText, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("pull", helpText, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("preset", helpText, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]
