@@ -19,7 +19,7 @@ jobs:
           fetch-depth: 0
 
       - name: Calq Flow (publish)
-        uses: ./
+        uses: calq-framework/flow@latest
         with:
           subcommand: 'publish --api-key ${{ github.token }}'
         env: ${{ secrets }}

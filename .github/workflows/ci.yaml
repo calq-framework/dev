@@ -15,7 +15,7 @@ jobs:
           fetch-depth: 0
 
       - name: Calq Flow (dry-run)
-        uses: ./
+        uses: calq-framework/flow@latest
         with:
           subcommand: 'publish --dry-run'
         env: ${{ secrets }}
