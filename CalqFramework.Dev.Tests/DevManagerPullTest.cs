@@ -38,7 +38,7 @@ public class DevManagerPullTest : IDisposable {
 
             // Pull from the first working dir
             CD(_workDir);
-            var dev = new DevManager();
+            DevManager dev = new();
             await dev.Pull();
             CD(prev);
 
@@ -76,7 +76,7 @@ public class DevManagerPullTest : IDisposable {
             CD(_workDir);
 
             // Pull while on feature branch — should rebase onto updated main
-            var dev = new DevManager();
+            DevManager dev = new();
             await dev.Pull();
 
             // Verify linear history (rebase, not merge)

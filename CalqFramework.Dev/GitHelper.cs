@@ -6,7 +6,9 @@ namespace CalqFramework.Dev;
 public static class GitHelper {
     public static string GetCurrentBranch() => CMD("git rev-parse --abbrev-ref HEAD");
 
-    public static bool HasChanges() => CMD("git diff --stat").Length > 0 || CMD("git diff --cached --stat").Length > 0;
+    public static bool HasChanges() => CMD("git diff --stat")
+        .Length > 0 || CMD("git diff --cached --stat")
+        .Length > 0;
 
     public static int? ExtractIssueId(string branchName) {
         Match match = Regex.Match(branchName, @"(\d+)$");

@@ -1,5 +1,3 @@
-using CalqFramework.Config;
-
 namespace CalqFramework.Dev.Config;
 
 /// <summary>
@@ -12,35 +10,35 @@ public class NewConfig {
     public string Lang { get; set; } = "C#";
     public string InitialVersion { get; set; } = "0.0.0";
 
-    public List<string> CommonRequiredSteps { get; set; } = new();
+    public List<string> CommonRequiredSteps { get; set; } = [];
 
-    public List<string> CommonOptionalSteps { get; set; } = new() {
+    public List<string> CommonOptionalSteps { get; set; } = [
         "gh repo clone {organization}/.github -- -d {dir}",
-        "gh repo clone {organization}/.license -- -d {dir}",
-    };
+        "gh repo clone {organization}/.license -- -d {dir}"
+    ];
 
     public Dictionary<string, List<string>> ProjectTypes { get; set; } = new() {
-        ["classlib"] = new() {
+        ["classlib"] = [
             "dotnet new classlib -n {name} -o {name} {langFlag}",
             "dotnet new xunit -n {name}.Tests -o {name}.Tests {langFlag}",
             "dotnet new sln -n {name}",
             "dotnet sln add {name} {name}.Tests",
-            "dotnet add {name}.Tests reference {name}",
-        },
-        ["console"] = new() {
+            "dotnet add {name}.Tests reference {name}"
+        ],
+        ["console"] = [
             "dotnet new console -n {name} -o {name} {langFlag}",
             "dotnet new sln -n {name}",
-            "dotnet sln add {name}",
-        },
-        ["tool"] = new() {
+            "dotnet sln add {name}"
+        ],
+        ["tool"] = [
             "dotnet new console -n {name} -o {name} {langFlag}",
             "dotnet new console -n {name}.Cli -o {name}.Cli {langFlag}",
             "dotnet new xunit -n {name}.Tests -o {name}.Tests {langFlag}",
             "dotnet new sln -n {name}",
             "dotnet sln add {name} {name}.Cli {name}.Tests",
             "dotnet add {name}.Cli reference {name}",
-            "dotnet add {name}.Tests reference {name}",
-        },
+            "dotnet add {name}.Tests reference {name}"
+        ]
     };
 
     /// <summary>
@@ -53,24 +51,24 @@ public class NewConfig {
             ["PackageId"] = "{projectFullName}",
             ["Version"] = "{initialVersion}",
             ["PublishRepositoryUrl"] = "true",
-            ["EmbedUntrackedSources"] = "true",
+            ["EmbedUntrackedSources"] = "true"
         },
         ["console"] = new() {
             ["RootNamespace"] = "{projectFullName}",
-            ["Version"] = "{initialVersion}",
+            ["Version"] = "{initialVersion}"
         },
         ["xunit"] = new() {
-            ["RootNamespace"] = "{projectFullName}",
-        },
+            ["RootNamespace"] = "{projectFullName}"
+        }
     };
 
     public string GhRepoFlags { get; set; } = "--disable-wiki";
 
-    public List<string> GitInitSteps { get; set; } = new() {
+    public List<string> GitInitSteps { get; set; } = [
         "git init --initial-branch=main",
         "git add .",
         "git commit -m \"init\"",
         "gh repo create {organization}/{kebabName} {visibility} --source=. --remote=origin {ghRepoFlags}",
-        "git push --set-upstream origin main",
-    };
+        "git push --set-upstream origin main"
+    ];
 }

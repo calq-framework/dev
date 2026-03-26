@@ -1,6 +1,3 @@
-using System.Reflection;
-using CalqFramework.Config;
-using CalqFramework.Config.Json;
 using CalqFramework.Dev.Config;
 
 namespace CalqFramework.Dev;
@@ -8,10 +5,8 @@ namespace CalqFramework.Dev;
 /// <summary>
 ///     Manages configuration directory and dotfiles sync for codespaces.
 /// </summary>
-public class ConfigManager {
-    private readonly JsonConfigurationRegistry<MasterPreset> _config;
-
-    public ConfigManager(JsonConfigurationRegistry<MasterPreset> config) => _config = config;
+public class ConfigManager(JsonConfigurationRegistry<MasterPreset> config) {
+    private readonly JsonConfigurationRegistry<MasterPreset> _config = config;
 
     private static string DotfilesConfigDir =>
         System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "dotfiles", ".config", "dev");
@@ -21,10 +16,9 @@ public class ConfigManager {
 
     // ── Completion Providers ──
 
-    public IEnumerable<string> CompleteConfigName() =>
+    public static IEnumerable<string> CompleteConfigName() =>
         typeof(MasterPreset).Assembly.GetTypes()
-            .Where(t => t.Namespace == typeof(MasterPreset).Namespace
-                      && t.GetCustomAttribute<PresetGroupAttribute>() != null)
+            .Where(t => t.Namespace == typeof(MasterPreset).Namespace && t.GetCustomAttribute<PresetGroupAttribute>() != null)
             .Select(t => t.Name);
 
     public IEnumerable<string> CompletePreset() =>
@@ -33,9 +27,7 @@ public class ConfigManager {
     /// <summary>
     ///     Prints the configuration directory path.
     /// </summary>
-    public void Path() {
-        Console.WriteLine(_config.ConfigDir);
-    }
+    public void Path() => Console.WriteLine(_config.ConfigDir);
 
     /// <summary>
     ///     Copies local config to the dotfiles repo and pushes.
@@ -113,7 +105,9 @@ public class ConfigManager {
         RUN($"git -C \"{repo}\" pull --rebase --quiet");
 
         string dotfilesConfig = DotfilesConfigDir;
-        if (!Directory.Exists(dotfilesConfig)) return;
+        if (!Directory.Exists(dotfilesConfig)) {
+            return;
+        }
 
         foreach (string file in Directory.EnumerateFiles(dotfilesConfig)) {
             File.Copy(file, System.IO.Path.Combine(_config.ConfigDir, System.IO.Path.GetFileName(file)), true);

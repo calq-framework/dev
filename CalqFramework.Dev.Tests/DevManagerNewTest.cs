@@ -12,16 +12,14 @@ public class DevManagerNewTest : IDisposable {
         Directory.CreateDirectory(_workDir);
     }
 
-    public void Dispose() {
-        TestHelper.CleanupDir(_workDir);
-    }
+    public void Dispose() => TestHelper.CleanupDir(_workDir);
 
     [Fact]
     public async Task New_Classlib_CreatesProjectsAndSolution() {
         string prev = PWD;
         CD(_workDir);
 
-        var dev = new DevManager();
+        DevManager dev = new();
         await dev.New("classlib", "CalqFramework.Foo");
 
         CD(prev);
@@ -41,7 +39,7 @@ public class DevManagerNewTest : IDisposable {
         string prev = PWD;
         CD(_workDir);
 
-        var dev = new DevManager();
+        DevManager dev = new();
         await dev.New("console", "CalqFramework.Bar");
 
         CD(prev);
@@ -55,7 +53,7 @@ public class DevManagerNewTest : IDisposable {
         string prev = PWD;
         CD(_workDir);
 
-        var dev = new DevManager();
+        DevManager dev = new();
         await dev.New("tool", "CalqFramework.Baz");
 
         CD(prev);
@@ -71,7 +69,7 @@ public class DevManagerNewTest : IDisposable {
         string prev = PWD;
         CD(_workDir);
 
-        var dev = new DevManager();
+        DevManager dev = new();
         await dev.New("classlib", "CalqFramework.Foo");
 
         CD(prev);
@@ -87,7 +85,7 @@ public class DevManagerNewTest : IDisposable {
         string prev = PWD;
         CD(_workDir);
 
-        var dev = new DevManager();
+        DevManager dev = new();
         await Assert.ThrowsAsync<InvalidOperationException>(() => dev.New("nonexistent", "CalqFramework.Nope"));
 
         CD(prev);
@@ -98,7 +96,7 @@ public class DevManagerNewTest : IDisposable {
         string prev = PWD;
         CD(_workDir);
 
-        var dev = new DevManager();
+        DevManager dev = new();
         await dev.New("console", "CalqFramework.Local");
 
         CD(prev);
