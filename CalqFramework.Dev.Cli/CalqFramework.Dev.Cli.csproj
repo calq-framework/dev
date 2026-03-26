@@ -25,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\cli\CalqFramework.Cli\CalqFramework.Cli.csproj" />
+    <PackageReference Include="CalqFramework.Cli" Version="0.63.2" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="all" />
   </ItemGroup>
 
