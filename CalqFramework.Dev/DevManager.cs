@@ -1,5 +1,3 @@
-using CalqFramework.Config;
-using CalqFramework.Config.Json;
 using CalqFramework.Dev.Config;
 
 namespace CalqFramework.Dev;
@@ -8,14 +6,17 @@ namespace CalqFramework.Dev;
 ///     Configurable developer workflow orchestrator.
 ///     All subcommand behavior is driven by CalqFramework.Config preset POCOs.
 /// </summary>
-public class DevManager {
-    private readonly JsonConfigurationRegistry<MasterPreset> _config;
+public class DevManager(JsonConfigurationRegistry<MasterPreset> config) {
+    private readonly JsonConfigurationRegistry<MasterPreset> _config = config;
 
     public DevManager() : this(new()) { }
-    public DevManager(JsonConfigurationRegistry<MasterPreset> config) {
-        _config = config;
-        Config = new ConfigManager(config);
-    }
+
+    // ── Submodules ──
+
+    /// <summary>
+    ///     Configuration management (path, push, pull).
+    /// </summary>
+    public ConfigManager Config { get; } = new(config);
 
     // ── Preflight ──
 
@@ -30,9 +31,10 @@ public class DevManager {
     }
 
     private static void RequireTools(IEnumerable<string> commands) {
-        HashSet<string> tools = new();
+        HashSet<string> tools = [];
         foreach (string cmd in commands) {
-            string? tool = cmd.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+            string? tool = cmd.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .FirstOrDefault();
             if (tool != null) {
                 tools.Add(tool);
             }
@@ -46,24 +48,19 @@ public class DevManager {
     // ── Completion Providers ──
 
     public IEnumerable<string> CompleteProjectType() =>
-        _config.GetAsync<NewConfig>().Result.ProjectTypes.Keys;
+        _config.GetAsync<NewConfig>()
+            .Result.ProjectTypes.Keys;
 
     public IEnumerable<string> CompleteIssues() {
         try {
-            string command = _config.GetAsync<UtilityConfig>().Result.IssueCompletionCommand;
+            string command = _config.GetAsync<UtilityConfig>()
+                .Result.IssueCompletionCommand;
             string output = CMD(command);
             return output.Split('\n', StringSplitOptions.RemoveEmptyEntries);
         } catch {
             return [];
         }
     }
-
-    // ── Submodules ──
-
-    /// <summary>
-    ///     Configuration management (path, push, pull).
-    /// </summary>
-    public ConfigManager Config { get; }
 
     // ── Subcommands ──
 
@@ -82,14 +79,16 @@ public class DevManager {
         string org = organization ?? cfg.Organization;
         if (string.IsNullOrEmpty(org)) {
             try {
-                org = CMD("gh api user --jq .login").Trim();
+                org = CMD("gh api user --jq .login")
+                    .Trim();
             } catch {
                 throw new InvalidOperationException("Organization not set and 'gh' not available. Set it via --organization or config in: " + _config.ConfigDir);
             }
         }
+
         string language = lang ?? cfg.Lang;
 
-        if (!cfg.ProjectTypes.ContainsKey(type)) {
+        if (!cfg.ProjectTypes.TryGetValue(type, out List<string>? value)) {
             throw new InvalidOperationException($"Unknown project type '{type}'. Available: {string.Join(", ", cfg.ProjectTypes.Keys)}");
         }
 
@@ -102,9 +101,12 @@ public class DevManager {
         string visibility = @public ? "--public" : @internal ? "--internal" : "--private";
 
         // Preflight (only check required steps)
-        List<string> allSteps = new(cfg.CommonRequiredSteps);
-        allSteps.AddRange(cfg.ProjectTypes[type]);
-        if (createRepo) allSteps.AddRange(cfg.GitInitSteps);
+        List<string> allSteps = [.. cfg.CommonRequiredSteps];
+        allSteps.AddRange(value);
+        if (createRepo) {
+            allSteps.AddRange(cfg.GitInitSteps);
+        }
+
         RequireTools(allSteps);
 
         // Execute optional steps (warn on failure)
@@ -122,8 +124,8 @@ public class DevManager {
         }
 
         // Execute project type steps
-        List<string> expandedSteps = new();
-        foreach (string step in cfg.ProjectTypes[type]) {
+        List<string> expandedSteps = [];
+        foreach (string step in value) {
             string expanded = Expand(step, name, kebabName, nameSuffix, langFlag, visibility, org, cfg);
             RUN(expanded);
             expandedSteps.Add(expanded);
@@ -157,7 +159,7 @@ public class DevManager {
         List<string> targets = DiscoverTargets(target);
 
         // Preflight  Eonly check tools for steps that will actually run
-        List<string> activeCommands = new();
+        List<string> activeCommands = [];
         foreach (FormatStep step in cfg.Steps) {
             if (step.FilePattern != null && !HasMatchingFiles(target, step.FilePattern)) {
                 continue;
@@ -176,7 +178,9 @@ public class DevManager {
 
             if (step.PerTarget) {
                 foreach (string t in targets) {
-                    RUN(step.Command.Replace("{target}", t).Replace("{dir}", target));
+                    RUN(
+                        step.Command.Replace("{target}", t)
+                            .Replace("{dir}", target));
                 }
             } else {
                 RUN(step.Command.Replace("{dir}", target));
@@ -247,8 +251,7 @@ public class DevManager {
                 if (issueId != null) {
                     RequireTool("gh");
                     string issueTitle = CMD($"gh issue view {issueId} --json title --jq .title");
-                    title = cfg.PrTitleFormat
-                        .Replace("{IssueID}", issueId.ToString())
+                    title = cfg.PrTitleFormat.Replace("{IssueID}", issueId.ToString())
                         .Replace("{IssueTitle}", issueTitle);
                 }
 
@@ -281,7 +284,10 @@ public class DevManager {
 
         // Atomic remote merge
         string mergeFlags = $"--{cfg.MergeStrategy}";
-        if (cfg.DeleteBranch) mergeFlags += " --delete-branch";
+        if (cfg.DeleteBranch) {
+            mergeFlags += " --delete-branch";
+        }
+
         RUN($"gh pr merge {mergeFlags}");
 
         // Close issue
@@ -326,11 +332,12 @@ public class DevManager {
     // ── Helpers ──
 
     private static string ToKebabCase(string value) =>
-        Regex.Replace(value, "([a-z0-9])([A-Z])", "$1-$2").ToLower().Replace('.', '-');
+        Regex.Replace(value, "([a-z0-9])([A-Z])", "$1-$2")
+            .ToLower()
+            .Replace('.', '-');
 
     private static string Expand(string template, string projectFullName, string kebabName, string name, string langFlag, string visibility, string organization, NewConfig cfg) =>
-        template
-            .Replace("{organization}", organization)
+        template.Replace("{organization}", organization)
             .Replace("{projectFullName}", projectFullName)
             .Replace("{kebabName}", kebabName)
             .Replace("{name}", name)
@@ -341,17 +348,23 @@ public class DevManager {
             .Replace("{dir}", ".");
 
     private static Dictionary<string, string> MapProjectsToTemplates(List<string> steps) {
-        Dictionary<string, string> map = new();
+        Dictionary<string, string> map = [];
         foreach (string step in steps) {
             string[] args = step.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (args is not ["dotnet", "new", var template, ..]) continue;
+            if (args is not ["dotnet", "new", var template, ..]) {
+                continue;
+            }
 
             int outputIndex = Array.IndexOf(args, "-o");
-            if (outputIndex < 0) outputIndex = Array.IndexOf(args, "--output");
+            if (outputIndex < 0) {
+                outputIndex = Array.IndexOf(args, "--output");
+            }
+
             if (outputIndex >= 0 && outputIndex + 1 < args.Length) {
                 map[args[outputIndex + 1]] = template;
             }
         }
+
         return map;
     }
 
@@ -359,18 +372,28 @@ public class DevManager {
         foreach (string projFile in Directory.EnumerateFiles(PWD, "*.*proj", SearchOption.AllDirectories)) {
             XDocument doc = XDocument.Load(projFile);
             XElement? propGroup = doc.Root?.Element("PropertyGroup");
-            if (propGroup == null) continue;
+            if (propGroup == null) {
+                continue;
+            }
 
             // Match this proj file to its template type via output directory
             string? rawDir = Path.GetDirectoryName(projFile);
-            if (rawDir == null) continue;
-            string projDir = Path.GetRelativePath(PWD, rawDir).Replace("\\", "/");
-            if (!projectTemplateMap.TryGetValue(projDir, out string? template)) continue;
-            if (!projXmlByTemplate.TryGetValue(template, out Dictionary<string, string>? projXml)) continue;
+            if (rawDir == null) {
+                continue;
+            }
+
+            string projDir = Path.GetRelativePath(PWD, rawDir)
+                .Replace("\\", "/");
+            if (!projectTemplateMap.TryGetValue(projDir, out string? template)) {
+                continue;
+            }
+
+            if (!projXmlByTemplate.TryGetValue(template, out Dictionary<string, string>? projXml)) {
+                continue;
+            }
 
             foreach (KeyValuePair<string, string> kvp in projXml) {
-                string value = kvp.Value
-                    .Replace("{projectFullName}", projectFullName)
+                string value = kvp.Value.Replace("{projectFullName}", projectFullName)
                     .Replace("{kebabName}", kebabName)
                     .Replace("{initialVersion}", initialVersion);
 
@@ -393,14 +416,17 @@ public class DevManager {
 
     private static void ReorderFSharpCompileItems(XDocument doc) {
         XNamespace ns = doc.Root?.Name.Namespace ?? XNamespace.None;
-        List<XElement> itemGroups = doc.Root?.Elements(ns + "ItemGroup").ToList() ?? new();
+        List<XElement> itemGroups = doc.Root?.Elements(ns + "ItemGroup")
+            .ToList() ?? [];
 
         foreach (XElement itemGroup in itemGroups) {
-            List<XElement> compileItems = itemGroup.Elements(ns + "Compile").ToList();
-            if (compileItems.Count <= 1) continue;
+            List<XElement> compileItems = [.. itemGroup.Elements(ns + "Compile")];
+            if (compileItems.Count <= 1) {
+                continue;
+            }
 
-            XElement? programFs = compileItems.FirstOrDefault(e =>
-                e.Attribute("Include")?.Value.EndsWith("Program.fs", StringComparison.OrdinalIgnoreCase) == true);
+            XElement? programFs = compileItems.FirstOrDefault(e => e.Attribute("Include")
+                ?.Value.EndsWith("Program.fs", StringComparison.OrdinalIgnoreCase) == true);
 
             if (programFs != null) {
                 programFs.Remove();
@@ -410,12 +436,10 @@ public class DevManager {
     }
 
     private static List<string> DiscoverTargets(string dir) {
-        List<string> targets = new();
-        foreach (string file in Directory.EnumerateFiles(dir, "*.sln", SearchOption.TopDirectoryOnly)) {
-            targets.Add(file);
-        }
+        List<string> targets = [.. Directory.EnumerateFiles(dir, "*.sln", SearchOption.TopDirectoryOnly)];
 
-        if (targets.Count == 0) {
+        if (targets.Count != 1) {
+            targets.Clear();
             foreach (string file in Directory.EnumerateFiles(dir, "*.*proj", SearchOption.TopDirectoryOnly)) {
                 targets.Add(file);
             }
@@ -426,7 +450,8 @@ public class DevManager {
 
     private static bool HasMatchingFiles(string dir, string pattern) {
         try {
-            return Directory.EnumerateFiles(dir, pattern, SearchOption.AllDirectories).Any();
+            return Directory.EnumerateFiles(dir, pattern, SearchOption.AllDirectories)
+                .Any();
         } catch {
             return false;
         }
@@ -438,7 +463,9 @@ public class DevManager {
     /// </summary>
     private static void SeedWorkflowTemplates(string dir) {
         string templatesDir = Path.Combine(dir, "workflow-templates");
-        if (!Directory.Exists(templatesDir)) return;
+        if (!Directory.Exists(templatesDir)) {
+            return;
+        }
 
         string workflowsDir = Path.Combine(dir, ".github", "workflows");
         Directory.CreateDirectory(workflowsDir);

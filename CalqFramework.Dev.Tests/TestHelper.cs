@@ -28,9 +28,11 @@ public static class TestHelper {
         string projectDir = Path.Combine(parentDir, projectName);
         Directory.CreateDirectory(projectDir);
         string csprojPath = Path.Combine(projectDir, $"{projectName}.csproj");
-        File.WriteAllText(csprojPath, $@"<Project Sdk=""Microsoft.NET.Sdk"">
+        File.WriteAllText(
+            csprojPath,
+            @"<Project Sdk=""Microsoft.NET.Sdk"">
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Version>0.0.0</Version>
   </PropertyGroup>
 </Project>");

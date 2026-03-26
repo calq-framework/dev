@@ -6,7 +6,9 @@ namespace CalqFramework.Dev.Tests;
 public class DevManagerCliTest {
     [Fact]
     public void Execute_Help_ReturnsWithoutError() {
-        var cli = new CommandLineInterface { InterfaceOut = new StringWriter() };
+        var cli = new CommandLineInterface {
+            InterfaceOut = new StringWriter()
+        };
         object? result = cli.Execute(new DevManager(), ["--help"]);
         Assert.IsType<ValueTuple>(result);
     }
@@ -21,7 +23,9 @@ public class DevManagerCliTest {
     [InlineData("relock")]
     [InlineData("issues")]
     public void Execute_SubcommandHelp_ReturnsWithoutError(string subcommand) {
-        var cli = new CommandLineInterface { InterfaceOut = new StringWriter() };
+        var cli = new CommandLineInterface {
+            InterfaceOut = new StringWriter()
+        };
         object? result = cli.Execute(new DevManager(), [subcommand, "--help"]);
         Assert.IsType<ValueTuple>(result);
     }
@@ -29,7 +33,9 @@ public class DevManagerCliTest {
     [Fact]
     public void Execute_Help_ContainsAllSubcommands() {
         var output = new StringWriter();
-        var cli = new CommandLineInterface { InterfaceOut = output };
+        var cli = new CommandLineInterface {
+            InterfaceOut = output
+        };
         cli.Execute(new DevManager(), ["--help"]);
 
         string helpText = output.ToString();
@@ -47,7 +53,9 @@ public class DevManagerCliTest {
     [Fact]
     public void Execute_ConfigHelp_ContainsSubcommands() {
         var output = new StringWriter();
-        var cli = new CommandLineInterface { InterfaceOut = output };
+        var cli = new CommandLineInterface {
+            InterfaceOut = output
+        };
         cli.Execute(new DevManager(), ["config", "--help"]);
 
         string helpText = output.ToString();
@@ -60,7 +68,9 @@ public class DevManagerCliTest {
     [Fact]
     public void Execute_NewHelp_ContainsParameters() {
         var output = new StringWriter();
-        var cli = new CommandLineInterface { InterfaceOut = output };
+        var cli = new CommandLineInterface {
+            InterfaceOut = output
+        };
         cli.Execute(new DevManager(), ["new", "--help"]);
 
         string helpText = output.ToString();

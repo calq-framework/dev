@@ -1,5 +1,3 @@
-using CalqFramework.Config;
-
 namespace CalqFramework.Dev.Config;
 
 /// <summary>

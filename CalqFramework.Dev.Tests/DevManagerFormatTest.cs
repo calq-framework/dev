@@ -1,4 +1,3 @@
-using CalqFramework.Config.Json;
 using CalqFramework.Dev.Config;
 
 namespace CalqFramework.Dev.Tests;
@@ -15,9 +14,7 @@ public class DevManagerFormatTest : IDisposable {
         Directory.CreateDirectory(_workDir);
     }
 
-    public void Dispose() {
-        TestHelper.CleanupDir(_workDir);
-    }
+    public void Dispose() => TestHelper.CleanupDir(_workDir);
 
     private static bool IsToolAvailable(string tool) {
         try {
@@ -32,14 +29,10 @@ public class DevManagerFormatTest : IDisposable {
     }
 
     [Fact]
-    public void IsToolAvailable_NonExistentTool_ReturnsFalse() {
-        Assert.False(IsToolAvailable("totallyfaketool_xyz123"));
-    }
+    public void IsToolAvailable_NonExistentTool_ReturnsFalse() => Assert.False(IsToolAvailable("totallyfaketool_xyz123"));
 
     [Fact]
-    public void IsToolAvailable_ExistingTool_ReturnsTrue() {
-        Assert.True(IsToolAvailable("dotnet"));
-    }
+    public void IsToolAvailable_ExistingTool_ReturnsTrue() => Assert.True(IsToolAvailable("dotnet"));
 
     [Fact]
     public async Task Format_DotnetOnly_BuildsAndFormats() {
@@ -51,13 +44,20 @@ public class DevManagerFormatTest : IDisposable {
         RUN("dotnet restore TestLib");
 
         var registry = new JsonConfigurationRegistry<MasterPreset>();
-        var cfg = await registry.GetAsync<FormatConfig>();
+        FormatConfig cfg = await registry.GetAsync<FormatConfig>();
         cfg.Steps = [
-            new() { Command = "dotnet build --no-restore {dir}" },
-            new() { Command = "dotnet format {target} --verbosity diag --severity info", PerTarget = true },
-            new() { Command = "dotnet build --no-restore {dir}" },
+            new() {
+                Command = "dotnet build --no-restore {dir}"
+            },
+            new() {
+                Command = "dotnet format {target} --verbosity diag --severity info",
+                PerTarget = true
+            },
+            new() {
+                Command = "dotnet build --no-restore {dir}"
+            }
         ];
-        var dev = new DevManager(registry);
+        DevManager dev = new(registry);
         await dev.Format(new DirectoryInfo(projectDir));
 
         CD(prev);
