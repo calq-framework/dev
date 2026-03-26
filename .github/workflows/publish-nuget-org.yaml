@@ -18,7 +18,7 @@ jobs:
           fetch-depth: 0
 
       - name: Calq Flow (publish to nuget.org)
-        uses: ./
+        uses: calq-framework/flow@latest
         with:
           subcommand: 'publish --sources nuget.org --api-key ${{ secrets.NUGET_API_KEY }}'
         env: ${{ secrets }}
