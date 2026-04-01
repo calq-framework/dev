@@ -95,7 +95,8 @@ dev new classlib CalqFramework.Foo --lang "F#" --organization my-org
 
 **Key points:**
 - Project types are fully configurable — add your own via `NewConfig.ProjectTypes`
-- Name follows `Organization.Project` convention — the part after the first dot becomes the directory/solution name
+- Name follows `Organization.Project` convention — the part after the first dot is kebab-cased into the project subdirectory name (e.g., `CalqFramework.Something` creates a `something/` directory)
+- Projects and solutions use the full name (e.g., `CalqFramework.Something.csproj`, `CalqFramework.Something.sln`)
 - `.csproj` injection is template-aware: different XML properties for `classlib` vs `console` vs `xunit`
 - Missing tools are detected before execution starts (preflight check)
 
@@ -294,7 +295,7 @@ Edit `NewConfig` to define custom project types, change the scaffolding steps, o
 **Add a custom project type:**
 
 ```bash
-dev config set NewConfig ProjectTypes.webapp "[\"dotnet new webapp -n {name} -o {name}\", \"dotnet new sln -n {name}\", \"dotnet sln add {name}\"]"
+dev config set NewConfig ProjectTypes.webapp "[\"dotnet new webapp -n {projectFullName} -o {projectFullName}\", \"dotnet new sln -n {projectFullName}\", \"dotnet sln add {projectFullName}\"]"
 ```
 
 Or edit the JSON file directly at `{configDir}/CalqFramework.Dev.Config.NewConfig.{preset}.json`:
@@ -302,8 +303,8 @@ Or edit the JSON file directly at `{configDir}/CalqFramework.Dev.Config.NewConfi
 ```json
 {
   "ProjectTypes": {
-    "classlib": ["dotnet new classlib -n {name} -o {name} {langFlag}", "..."],
-    "webapp": ["dotnet new webapp -n {name} -o {name}", "dotnet new sln -n {name}", "dotnet sln add {name}"]
+    "classlib": ["dotnet new classlib -n {projectFullName} -o {projectFullName} {langFlag}", "..."],
+    "webapp": ["dotnet new webapp -n {projectFullName} -o {projectFullName}", "dotnet new sln -n {projectFullName}", "dotnet sln add {projectFullName}"]
   }
 }
 ```
@@ -321,6 +322,7 @@ Or edit the JSON file directly at `{configDir}/CalqFramework.Dev.Config.NewConfi
 | `{visibility}` | `--public`, `--private`, or `--internal` |
 | `{ghRepoFlags}` | Additional `gh repo create` flags |
 | `{dir}` | Current directory (`.`) |
+| `{tempDir}` | Temporary directory for optional clone steps |
 
 **Customize .csproj injection:**
 
@@ -444,7 +446,6 @@ dev --help
 **Scaffold a project:**
 
 ```bash
-mkdir my-project && cd my-project
 dev new classlib MyOrg.MyLib
 ```
 

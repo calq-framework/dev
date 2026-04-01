@@ -20,18 +20,22 @@ public class DevManagerNewTest : IDisposable {
         CD(_workDir);
 
         DevManager dev = new();
-        await dev.New("classlib", "CalqFramework.Foo");
+        await dev.New("classlib", "CalqFramework.Foo", organization: "calq-framework");
 
         CD(prev);
 
+        string subDir = Path.Combine(_workDir, "foo");
+
         // Verify solution exists
-        Assert.True(File.Exists(Path.Combine(_workDir, "Foo.sln")));
+        Assert.True(
+            File.Exists(Path.Combine(subDir, "CalqFramework.Foo.sln")) ||
+            File.Exists(Path.Combine(subDir, "CalqFramework.Foo.slnx")));
 
         // Verify classlib project
-        Assert.True(File.Exists(Path.Combine(_workDir, "Foo", "Foo.csproj")));
+        Assert.True(File.Exists(Path.Combine(subDir, "CalqFramework.Foo", "CalqFramework.Foo.csproj")));
 
         // Verify test project
-        Assert.True(File.Exists(Path.Combine(_workDir, "Foo.Tests", "Foo.Tests.csproj")));
+        Assert.True(File.Exists(Path.Combine(subDir, "CalqFramework.Foo.Tests", "CalqFramework.Foo.Tests.csproj")));
     }
 
     [Fact]
@@ -40,12 +44,16 @@ public class DevManagerNewTest : IDisposable {
         CD(_workDir);
 
         DevManager dev = new();
-        await dev.New("console", "CalqFramework.Bar");
+        await dev.New("console", "CalqFramework.Bar", organization: "calq-framework");
 
         CD(prev);
 
-        Assert.True(File.Exists(Path.Combine(_workDir, "Bar.sln")));
-        Assert.True(File.Exists(Path.Combine(_workDir, "Bar", "Bar.csproj")));
+        string subDir = Path.Combine(_workDir, "bar");
+
+        Assert.True(
+            File.Exists(Path.Combine(subDir, "CalqFramework.Bar.sln")) ||
+            File.Exists(Path.Combine(subDir, "CalqFramework.Bar.slnx")));
+        Assert.True(File.Exists(Path.Combine(subDir, "CalqFramework.Bar", "CalqFramework.Bar.csproj")));
     }
 
     [Fact]
@@ -54,14 +62,18 @@ public class DevManagerNewTest : IDisposable {
         CD(_workDir);
 
         DevManager dev = new();
-        await dev.New("tool", "CalqFramework.Baz");
+        await dev.New("tool", "CalqFramework.Baz", organization: "calq-framework");
 
         CD(prev);
 
-        Assert.True(File.Exists(Path.Combine(_workDir, "Baz.sln")));
-        Assert.True(File.Exists(Path.Combine(_workDir, "Baz", "Baz.csproj")));
-        Assert.True(File.Exists(Path.Combine(_workDir, "Baz.Cli", "Baz.Cli.csproj")));
-        Assert.True(File.Exists(Path.Combine(_workDir, "Baz.Tests", "Baz.Tests.csproj")));
+        string subDir = Path.Combine(_workDir, "baz");
+
+        Assert.True(
+            File.Exists(Path.Combine(subDir, "CalqFramework.Baz.sln")) ||
+            File.Exists(Path.Combine(subDir, "CalqFramework.Baz.slnx")));
+        Assert.True(File.Exists(Path.Combine(subDir, "CalqFramework.Baz", "CalqFramework.Baz.csproj")));
+        Assert.True(File.Exists(Path.Combine(subDir, "CalqFramework.Baz.Cli", "CalqFramework.Baz.Cli.csproj")));
+        Assert.True(File.Exists(Path.Combine(subDir, "CalqFramework.Baz.Tests", "CalqFramework.Baz.Tests.csproj")));
     }
 
     [Fact]
@@ -70,11 +82,13 @@ public class DevManagerNewTest : IDisposable {
         CD(_workDir);
 
         DevManager dev = new();
-        await dev.New("classlib", "CalqFramework.Foo");
+        await dev.New("classlib", "CalqFramework.Foo", organization: "calq-framework");
 
         CD(prev);
 
-        string csproj = File.ReadAllText(Path.Combine(_workDir, "Foo", "Foo.csproj"));
+        string subDir = Path.Combine(_workDir, "foo");
+
+        string csproj = File.ReadAllText(Path.Combine(subDir, "CalqFramework.Foo", "CalqFramework.Foo.csproj"));
         Assert.Contains("<PackageId>CalqFramework.Foo</PackageId>", csproj);
         Assert.Contains("<Version>0.0.0</Version>", csproj);
         Assert.Contains("<PublishRepositoryUrl>true</PublishRepositoryUrl>", csproj);
@@ -86,7 +100,7 @@ public class DevManagerNewTest : IDisposable {
         CD(_workDir);
 
         DevManager dev = new();
-        await Assert.ThrowsAsync<InvalidOperationException>(() => dev.New("nonexistent", "CalqFramework.Nope"));
+        await Assert.ThrowsAsync<InvalidOperationException>(() => dev.New("nonexistent", "CalqFramework.Nope", organization: "calq-framework"));
 
         CD(prev);
     }
@@ -97,11 +111,13 @@ public class DevManagerNewTest : IDisposable {
         CD(_workDir);
 
         DevManager dev = new();
-        await dev.New("console", "CalqFramework.Local");
+        await dev.New("console", "CalqFramework.Local", organization: "calq-framework");
 
         CD(prev);
 
+        string subDir = Path.Combine(_workDir, "local");
+
         // No .git directory should exist
-        Assert.False(Directory.Exists(Path.Combine(_workDir, ".git")));
+        Assert.False(Directory.Exists(Path.Combine(subDir, ".git")));
     }
 }

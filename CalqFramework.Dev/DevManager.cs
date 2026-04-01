@@ -109,12 +109,31 @@ public class DevManager(JsonConfigurationRegistry<MasterPreset> config) {
 
         RequireTools(allSteps);
 
-        // Execute optional steps (warn on failure)
-        foreach (string step in cfg.CommonOptionalSteps) {
+        // Create and enter project subdirectory
+        Directory.CreateDirectory(Path.Combine(PWD, kebabName));
+        CD(kebabName);
+
+        // Execute optional steps — clone to temp, extract contents into project dir
+        string tempDir = Path.Combine(Path.GetTempPath(), $"dev-new-{Guid.NewGuid():N}");
+        Directory.CreateDirectory(tempDir);
+        try {
+            foreach (string step in cfg.CommonOptionalSteps) {
+                try {
+                    RUN(Expand(step, name, kebabName, nameSuffix, langFlag, visibility, org, cfg, tempDir));
+                } catch (Exception ex) {
+                    Console.Error.WriteLine($"Warning: {step} failed \u00a0E{ex.Message}");
+                }
+            }
+
+            // Copy cloned contents (minus .git/) into project dir
+            foreach (string clonedDir in Directory.EnumerateDirectories(tempDir)) {
+                CopyDirectoryContents(clonedDir, PWD);
+            }
+        } finally {
             try {
-                RUN(Expand(step, name, kebabName, nameSuffix, langFlag, visibility, org, cfg));
-            } catch (Exception ex) {
-                Console.Error.WriteLine($"Warning: {step} failed  E{ex.Message}");
+                Directory.Delete(tempDir, true);
+            } catch {
+                // best effort cleanup
             }
         }
 
@@ -134,7 +153,7 @@ public class DevManager(JsonConfigurationRegistry<MasterPreset> config) {
         // Seed workflows from workflow-templates
         SeedWorkflowTemplates(PWD);
 
-        // XML injection  Ematch each *.*proj to its dotnet new template type
+        // XML injection — match each *.*proj to its dotnet new template type
         Dictionary<string, string> projectTemplateMap = MapProjectsToTemplates(expandedSteps);
         InjectProjXml(cfg.ProjXml, projectTemplateMap, name, kebabName, cfg.InitialVersion);
 
@@ -336,7 +355,7 @@ public class DevManager(JsonConfigurationRegistry<MasterPreset> config) {
             .ToLower()
             .Replace('.', '-');
 
-    private static string Expand(string template, string projectFullName, string kebabName, string name, string langFlag, string visibility, string organization, NewConfig cfg) =>
+    private static string Expand(string template, string projectFullName, string kebabName, string name, string langFlag, string visibility, string organization, NewConfig cfg, string? tempDir = null) =>
         template.Replace("{organization}", organization)
             .Replace("{projectFullName}", projectFullName)
             .Replace("{kebabName}", kebabName)
@@ -345,6 +364,7 @@ public class DevManager(JsonConfigurationRegistry<MasterPreset> config) {
             .Replace("{initialVersion}", cfg.InitialVersion)
             .Replace("{visibility}", visibility)
             .Replace("{ghRepoFlags}", cfg.GhRepoFlags)
+            .Replace("{tempDir}", tempDir ?? ".")
             .Replace("{dir}", ".");
 
     private static Dictionary<string, string> MapProjectsToTemplates(List<string> steps) {
@@ -479,5 +499,26 @@ public class DevManager(JsonConfigurationRegistry<MasterPreset> config) {
 
         // Clean up the downloaded workflow-templates directory
         Directory.Delete(templatesDir, true);
+    }
+    /// <summary>
+    ///     Recursively copies all files and directories from source into destination,
+    ///     skipping .git directories.
+    /// </summary>
+    private static void CopyDirectoryContents(string source, string destination) {
+        foreach (string file in Directory.EnumerateFiles(source)) {
+            string destFile = Path.Combine(destination, Path.GetFileName(file));
+            File.Copy(file, destFile, true);
+        }
+
+        foreach (string dir in Directory.EnumerateDirectories(source)) {
+            string dirName = Path.GetFileName(dir);
+            if (dirName == ".git") {
+                continue;
+            }
+
+            string destDir = Path.Combine(destination, dirName);
+            Directory.CreateDirectory(destDir);
+            CopyDirectoryContents(dir, destDir);
+        }
     }
 }
