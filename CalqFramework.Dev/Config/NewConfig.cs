@@ -13,31 +13,31 @@ public class NewConfig {
     public List<string> CommonRequiredSteps { get; set; } = [];
 
     public List<string> CommonOptionalSteps { get; set; } = [
-        "gh repo clone {organization}/.github -- -d {dir}",
-        "gh repo clone {organization}/.license -- -d {dir}"
+        "gh repo clone {organization}/.github -- {tempDir}/.github",
+        "gh repo clone {organization}/.license -- {tempDir}/.license"
     ];
 
     public Dictionary<string, List<string>> ProjectTypes { get; set; } = new() {
         ["classlib"] = [
-            "dotnet new classlib -n {name} -o {name} {langFlag}",
-            "dotnet new xunit -n {name}.Tests -o {name}.Tests {langFlag}",
-            "dotnet new sln -n {name}",
-            "dotnet sln add {name} {name}.Tests",
-            "dotnet add {name}.Tests reference {name}"
+            "dotnet new classlib -n {projectFullName} -o {projectFullName} {langFlag}",
+            "dotnet new xunit -n {projectFullName}.Tests -o {projectFullName}.Tests {langFlag}",
+            "dotnet new sln -n {projectFullName}",
+            "dotnet sln add {projectFullName} {projectFullName}.Tests",
+            "dotnet add {projectFullName}.Tests reference {projectFullName}"
         ],
         ["console"] = [
-            "dotnet new console -n {name} -o {name} {langFlag}",
-            "dotnet new sln -n {name}",
-            "dotnet sln add {name}"
+            "dotnet new console -n {projectFullName} -o {projectFullName} {langFlag}",
+            "dotnet new sln -n {projectFullName}",
+            "dotnet sln add {projectFullName}"
         ],
         ["tool"] = [
-            "dotnet new console -n {name} -o {name} {langFlag}",
-            "dotnet new console -n {name}.Cli -o {name}.Cli {langFlag}",
-            "dotnet new xunit -n {name}.Tests -o {name}.Tests {langFlag}",
-            "dotnet new sln -n {name}",
-            "dotnet sln add {name} {name}.Cli {name}.Tests",
-            "dotnet add {name}.Cli reference {name}",
-            "dotnet add {name}.Tests reference {name}"
+            "dotnet new console -n {projectFullName} -o {projectFullName} {langFlag}",
+            "dotnet new console -n {projectFullName}.Cli -o {projectFullName}.Cli {langFlag}",
+            "dotnet new xunit -n {projectFullName}.Tests -o {projectFullName}.Tests {langFlag}",
+            "dotnet new sln -n {projectFullName}",
+            "dotnet sln add {projectFullName} {projectFullName}.Cli {projectFullName}.Tests",
+            "dotnet add {projectFullName}.Cli reference {projectFullName}",
+            "dotnet add {projectFullName}.Tests reference {projectFullName}"
         ]
     };
 
