@@ -456,7 +456,10 @@ public class DevManager(JsonConfigurationRegistry<MasterPreset> config) {
     }
 
     private static List<string> DiscoverTargets(string dir) {
-        List<string> targets = [.. Directory.EnumerateFiles(dir, "*.sln", SearchOption.TopDirectoryOnly)];
+        List<string> targets = [
+            .. Directory.EnumerateFiles(dir, "*.sln", SearchOption.TopDirectoryOnly),
+            .. Directory.EnumerateFiles(dir, "*.slnx", SearchOption.TopDirectoryOnly)
+        ];
 
         if (targets.Count != 1) {
             targets.Clear();
