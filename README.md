@@ -132,16 +132,16 @@ dev format --dir /path/to/project
 
 | Step | Command | Condition |
 | :--- | :--- | :--- |
-| 1 | `dotnet build --no-restore {target}` | Per target (.sln or .*proj) |
+| 1 | `dotnet build --no-restore {target}` | Targets: `*.sln`, `*.slnx` → `*.*proj` |
 | 2 | `jb cleanupcode {dir} --profile="Built-in: Full Cleanup"` | Only if `*.csproj` files exist |
 | 3 | `fantomas {dir}` | Only if `*.fsproj` files exist |
-| 4 | `dotnet format {target} --verbosity diag --severity info` | Per target (.sln or .*proj) |
-| 5 | `dotnet build --no-restore {target}` | Per target (.sln or .*proj) |
+| 4 | `dotnet format {target} --verbosity diag --severity info` | Targets: `*.sln`, `*.slnx` → `*.*proj` |
+| 5 | `dotnet build --no-restore {target}` | Targets: `*.sln`, `*.slnx` → `*.*proj` |
 
 **Key points:**
 - Steps with `FilePattern` are skipped when no matching files exist in the target directory
-- Steps with `PerTarget = true` run once per discovered target (.sln if exactly one exists, otherwise individual .*proj files)
-- Placeholders: `{dir}` = target directory, `{target}` = individual .sln or .*proj file
+- Steps with `TargetPatterns` run once per discovered target file, substituting `{target}`. Patterns are grouped by priority: the first group that yields exactly one file wins; otherwise all results are combined.
+- Placeholders: `{dir}` = target directory, `{target}` = individual discovered target file
 - Missing tools are detected before the pipeline starts
 - The entire pipeline is configurable via `FormatConfig`
 
@@ -217,7 +217,7 @@ dev pull
 
 **Default behavior:** `git pull --rebase --autostash origin main`
 
-The pull steps are configurable via `UtilityConfig.Pull`.
+The pull steps are configurable via `UtilityConfig.Pull` using the same `PipelineStep` model as the format pipeline.
 
 #### How to Manage Dependencies with `relock`
 
@@ -360,9 +360,9 @@ Edit `FormatConfig` to change the formatting steps.
 ```json
 {
   "Steps": [
-    { "Command": "dotnet build --no-restore {target}", "PerTarget": true },
-    { "Command": "dotnet format {target} --severity info", "PerTarget": true },
-    { "Command": "dotnet build --no-restore {target}", "PerTarget": true }
+    { "Command": "dotnet build --no-restore {target}", "TargetPatterns": [["*.sln", "*.slnx"], ["*.*proj"]] },
+    { "Command": "dotnet format {target} --severity info", "TargetPatterns": [["*.sln", "*.slnx"], ["*.*proj"]] },
+    { "Command": "dotnet build --no-restore {target}", "TargetPatterns": [["*.sln", "*.slnx"], ["*.*proj"]] }
   ]
 }
 ```
@@ -372,21 +372,33 @@ Edit `FormatConfig` to change the formatting steps.
 ```json
 {
   "Steps": [
-    { "Command": "dotnet build --no-restore {target}", "PerTarget": true },
+    { "Command": "dotnet build --no-restore {target}", "TargetPatterns": [["*.sln", "*.slnx"], ["*.*proj"]] },
     { "Command": "my-custom-linter {dir}", "FilePattern": "*.cs" },
-    { "Command": "dotnet format {target} --severity info", "PerTarget": true },
-    { "Command": "dotnet build --no-restore {target}", "PerTarget": true }
+    { "Command": "dotnet format {target} --severity info", "TargetPatterns": [["*.sln", "*.slnx"], ["*.*proj"]] },
+    { "Command": "dotnet build --no-restore {target}", "TargetPatterns": [["*.sln", "*.slnx"], ["*.*proj"]] }
   ]
 }
 ```
 
-**FormatStep properties:**
+**Example: multi-language pipeline (Rust + .NET):**
+
+```json
+{
+  "Steps": [
+    { "Command": "dotnet build --no-restore {target}", "TargetPatterns": [["*.sln", "*.slnx"], ["*.*proj"]], "FilePattern": "*.csproj" },
+    { "Command": "dotnet format {target} --severity info", "TargetPatterns": [["*.sln", "*.slnx"], ["*.*proj"]], "FilePattern": "*.csproj" },
+    { "Command": "cargo fmt --manifest-path {target}", "TargetPatterns": [["Cargo.toml"]], "FilePattern": "Cargo.toml" }
+  ]
+}
+```
+
+**PipelineStep properties:**
 
 | Property | Type | Description |
 | :--- | :--- | :--- |
 | `Command` | string | Shell command. Supports `{dir}` and `{target}` placeholders. |
 | `FilePattern` | string? | Glob pattern — step is skipped if no matching files exist. |
-| `PerTarget` | bool | If true, runs once per .sln or .*proj file with `{target}` substitution. |
+| `TargetPatterns` | list of list of string? | Ordered glob-pattern groups for target discovery. First group yielding exactly one file wins; otherwise all results are combined. When null, command runs once with `{dir}` only. |
 
 See also: [How to Format Code with `format`](#how-to-format-code-with-format)
 
@@ -430,12 +442,14 @@ Each git workflow subcommand is driven by its own config POCO.
 
 ```json
 {
-  "Pull": ["git pull --rebase --autostash origin main"],
-  "Relock": ["dotnet restore --no-cache --force-evaluate --use-lock-file"],
-  "Issues": ["gh issue list --limit 20 --search \"is:open no:assignee sort:created-desc\""],
+  "Pull": [{ "Command": "git pull --rebase --autostash origin main" }],
+  "Relock": [{ "Command": "dotnet restore --no-cache --force-evaluate --use-lock-file" }],
+  "Issues": [{ "Command": "gh issue list --limit 20 --search \"is:open no:assignee sort:created-desc\"" }],
   "IssueCompletionCommand": "gh issue list --limit 20 --json number --jq \".[].number\""
 }
 ```
+
+All utility commands use the same `PipelineStep` model as `FormatConfig`, so you can add `FilePattern` guards and `TargetPatterns` to any step.
 
 **Key points:**
 - All config POCOs use `[PresetGroup("Workflow")]` — switching the master preset's `Workflow` value cascades to all of them

@@ -169,42 +169,11 @@ public class DevManager(JsonConfigurationRegistry<MasterPreset> config) {
     /// <summary>
     ///     Runs the configurable format pipeline on a directory.
     /// </summary>
-    /// <param name="dir">Target directory containing .NET projects.</param>
+    /// <param name="dir">Target directory containing projects.</param>
     public async Task Format(DirectoryInfo? dir = null) {
         string target = dir?.FullName ?? ".";
         FormatConfig cfg = await _config.GetAsync<FormatConfig>();
-
-        // Discover targets
-        List<string> targets = DiscoverTargets(target);
-
-        // Preflight  Eonly check tools for steps that will actually run
-        List<string> activeCommands = [];
-        foreach (FormatStep step in cfg.Steps) {
-            if (step.FilePattern != null && !HasMatchingFiles(target, step.FilePattern)) {
-                continue;
-            }
-
-            activeCommands.Add(step.Command);
-        }
-
-        RequireTools(activeCommands);
-
-        // Execute pipeline
-        foreach (FormatStep step in cfg.Steps) {
-            if (step.FilePattern != null && !HasMatchingFiles(target, step.FilePattern)) {
-                continue;
-            }
-
-            if (step.PerTarget) {
-                foreach (string t in targets) {
-                    RUN(
-                        step.Command.Replace("{target}", t)
-                            .Replace("{dir}", target));
-                }
-            } else {
-                RUN(step.Command.Replace("{dir}", target));
-            }
-        }
+        RunPipeline(target, cfg.Steps);
     }
 
     /// <summary>
@@ -212,10 +181,7 @@ public class DevManager(JsonConfigurationRegistry<MasterPreset> config) {
     /// </summary>
     public async Task Pull() {
         UtilityConfig cfg = await _config.GetAsync<UtilityConfig>();
-        RequireTools(cfg.Pull);
-        foreach (string step in cfg.Pull) {
-            RUN(step);
-        }
+        RunPipeline(".", cfg.Pull);
     }
 
     /// <summary>
@@ -331,10 +297,7 @@ public class DevManager(JsonConfigurationRegistry<MasterPreset> config) {
     /// </summary>
     public async Task Relock() {
         UtilityConfig cfg = await _config.GetAsync<UtilityConfig>();
-        RequireTools(cfg.Relock);
-        foreach (string step in cfg.Relock) {
-            RUN(step);
-        }
+        RunPipeline(".", cfg.Relock);
     }
 
     /// <summary>
@@ -342,10 +305,7 @@ public class DevManager(JsonConfigurationRegistry<MasterPreset> config) {
     /// </summary>
     public async Task Issues() {
         UtilityConfig cfg = await _config.GetAsync<UtilityConfig>();
-        RequireTools(cfg.Issues);
-        foreach (string step in cfg.Issues) {
-            RUN(step);
-        }
+        RunPipeline(".", cfg.Issues);
     }
 
     // ── Helpers ──
@@ -455,20 +415,56 @@ public class DevManager(JsonConfigurationRegistry<MasterPreset> config) {
         }
     }
 
-    private static List<string> DiscoverTargets(string dir) {
-        List<string> targets = [
-            .. Directory.EnumerateFiles(dir, "*.sln", SearchOption.TopDirectoryOnly),
-            .. Directory.EnumerateFiles(dir, "*.slnx", SearchOption.TopDirectoryOnly)
-        ];
+    private static List<string> DiscoverTargets(string dir, List<List<string>> targetPatterns) {
+        List<string> allResults = [];
 
-        if (targets.Count != 1) {
-            targets.Clear();
-            foreach (string file in Directory.EnumerateFiles(dir, "*.*proj", SearchOption.TopDirectoryOnly)) {
-                targets.Add(file);
+        foreach (List<string> group in targetPatterns) {
+            List<string> groupResults = [];
+            foreach (string pattern in group) {
+                groupResults.AddRange(Directory.EnumerateFiles(dir, pattern, SearchOption.TopDirectoryOnly));
             }
+
+            if (groupResults.Count == 1) {
+                return groupResults;
+            }
+
+            allResults.AddRange(groupResults);
         }
 
-        return targets;
+        return allResults;
+    }
+    // ── Pipeline Engine ──
+
+    private static void RunPipeline(string dir, List<PipelineStep> steps) {
+        // Preflight — only check tools for steps that will actually run
+        List<string> activeCommands = [];
+        foreach (PipelineStep step in steps) {
+            if (step.FilePattern != null && !HasMatchingFiles(dir, step.FilePattern)) {
+                continue;
+            }
+
+            activeCommands.Add(step.Command);
+        }
+
+        RequireTools(activeCommands);
+
+        // Execute pipeline
+        foreach (PipelineStep step in steps) {
+            if (step.FilePattern != null && !HasMatchingFiles(dir, step.FilePattern)) {
+                continue;
+            }
+
+            if (step.TargetPatterns is { Count: > 0 }) {
+                List<string> targets = DiscoverTargets(dir, step.TargetPatterns);
+                foreach (string t in targets) {
+                    RUN(
+                        step.Command.Replace("{target}", t)
+                            .Replace("{dir}", dir));
+                }
+            } else {
+                RUN(step.Command.Replace("{dir}", dir));
+            }
+        }
     }
 
     private static bool HasMatchingFiles(string dir, string pattern) {
@@ -503,6 +499,7 @@ public class DevManager(JsonConfigurationRegistry<MasterPreset> config) {
         // Clean up the downloaded workflow-templates directory
         Directory.Delete(templatesDir, true);
     }
+
     /// <summary>
     ///     Recursively copies all files and directories from source into destination,
     ///     skipping .git directories.
