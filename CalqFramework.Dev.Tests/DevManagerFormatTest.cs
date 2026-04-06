@@ -51,7 +51,7 @@ public class DevManagerFormatTest : IDisposable {
             },
             new() {
                 Command = "dotnet format {target} --verbosity diag --severity info",
-                PerTarget = true
+                TargetPatterns = [["*.sln", "*.slnx"], ["*.*proj"]]
             },
             new() {
                 Command = "dotnet build --no-restore {dir}"

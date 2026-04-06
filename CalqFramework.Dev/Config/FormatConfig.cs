@@ -5,10 +5,10 @@ namespace CalqFramework.Dev.Config;
 /// </summary>
 [PresetGroup("Workflow")]
 public class FormatConfig {
-    public List<FormatStep> Steps { get; set; } = [
+    public List<PipelineStep> Steps { get; set; } = [
         new() {
             Command = "dotnet build --no-restore {target}",
-            PerTarget = true
+            TargetPatterns = [["*.sln", "*.slnx"], ["*.*proj"]]
         },
         new() {
             Command = "jb cleanupcode {dir} --profile=\"Built-in: Full Cleanup\"",
@@ -20,11 +20,11 @@ public class FormatConfig {
         },
         new() {
             Command = "dotnet format {target} --verbosity diag --severity info",
-            PerTarget = true
+            TargetPatterns = [["*.sln", "*.slnx"], ["*.*proj"]]
         },
         new() {
             Command = "dotnet build --no-restore {target}",
-            PerTarget = true
+            TargetPatterns = [["*.sln", "*.slnx"], ["*.*proj"]]
         }
     ];
 }

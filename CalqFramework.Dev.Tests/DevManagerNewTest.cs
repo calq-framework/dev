@@ -27,9 +27,7 @@ public class DevManagerNewTest : IDisposable {
         string subDir = Path.Combine(_workDir, "foo");
 
         // Verify solution exists
-        Assert.True(
-            File.Exists(Path.Combine(subDir, "CalqFramework.Foo.sln")) ||
-            File.Exists(Path.Combine(subDir, "CalqFramework.Foo.slnx")));
+        Assert.True(File.Exists(Path.Combine(subDir, "CalqFramework.Foo.sln")) || File.Exists(Path.Combine(subDir, "CalqFramework.Foo.slnx")));
 
         // Verify classlib project
         Assert.True(File.Exists(Path.Combine(subDir, "CalqFramework.Foo", "CalqFramework.Foo.csproj")));
@@ -50,9 +48,7 @@ public class DevManagerNewTest : IDisposable {
 
         string subDir = Path.Combine(_workDir, "bar");
 
-        Assert.True(
-            File.Exists(Path.Combine(subDir, "CalqFramework.Bar.sln")) ||
-            File.Exists(Path.Combine(subDir, "CalqFramework.Bar.slnx")));
+        Assert.True(File.Exists(Path.Combine(subDir, "CalqFramework.Bar.sln")) || File.Exists(Path.Combine(subDir, "CalqFramework.Bar.slnx")));
         Assert.True(File.Exists(Path.Combine(subDir, "CalqFramework.Bar", "CalqFramework.Bar.csproj")));
     }
 
@@ -68,9 +64,7 @@ public class DevManagerNewTest : IDisposable {
 
         string subDir = Path.Combine(_workDir, "baz");
 
-        Assert.True(
-            File.Exists(Path.Combine(subDir, "CalqFramework.Baz.sln")) ||
-            File.Exists(Path.Combine(subDir, "CalqFramework.Baz.slnx")));
+        Assert.True(File.Exists(Path.Combine(subDir, "CalqFramework.Baz.sln")) || File.Exists(Path.Combine(subDir, "CalqFramework.Baz.slnx")));
         Assert.True(File.Exists(Path.Combine(subDir, "CalqFramework.Baz", "CalqFramework.Baz.csproj")));
         Assert.True(File.Exists(Path.Combine(subDir, "CalqFramework.Baz.Cli", "CalqFramework.Baz.Cli.csproj")));
         Assert.True(File.Exists(Path.Combine(subDir, "CalqFramework.Baz.Tests", "CalqFramework.Baz.Tests.csproj")));
