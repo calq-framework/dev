@@ -1,9 +1,7 @@
-Calq Framework is dual-licensed under:
+Calq Dev is licensed under:
 
 SPDX-License-Identifier: LicenseRef-PolyForm-Strict-1.0.0 WITH LicenseRef-Calq-Commercial-Grant
 
-1. Server Side Public License, Version 1
-   See: LICENSES/SSPL-1.0.txt
-
-2. Calq Commercial License (CCL)
-   See: LICENSES/LicenseRef-CCL.txt
+1. PolyForm Strict License 1.0.0 with Calq Commercial Use Grant
+   See: LICENSES/LicenseRef-PolyForm-Strict-1.0.0.txt
+   See: LICENSES/LicenseRef-Calq-Commercial-Grant.txt

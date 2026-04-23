@@ -10,15 +10,10 @@
     <PackageId>CalqFramework.Dev</PackageId>
     <Version>1.0.0</Version>
     <PackageProjectUrl>https://github.com/calq-framework</PackageProjectUrl>
-    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
-    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Copyright>2026-2026 Calq Framework</Copyright>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Include="..\LICENSE.txt" Pack="true" PackagePath="" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="CalqFramework.Cmd" Version="1.0.1" />
