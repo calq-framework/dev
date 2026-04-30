@@ -14,7 +14,8 @@ public class UtilityConfig {
 
     public List<PipelineStep> Relock { get; set; } = [
         new() {
-            Command = "dotnet restore --no-cache --force-evaluate --use-lock-file"
+            Command = "dotnet restore {target} --no-cache --force-evaluate --use-lock-file",
+            TargetPatterns = [["*.sln", "*.slnx"], ["*.csproj"]]
         }
     ];
 
