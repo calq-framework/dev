@@ -18,8 +18,8 @@
       },
       "CalqFramework.Config": {
         "type": "Transitive",
-        "resolved": "1.0.0",
-        "contentHash": "5DkJuOJO+2VqcbXRV/EJiFfbA2Lc8m5d2lRDMFrvZryS2v6ijsUsMks846coQGEQ3oYPJk9tXIYr4I3ws9lM5w==",
+        "resolved": "1.0.1",
+        "contentHash": "+p1fkq7jMG08dDj/XqSux1/Fkj12Y8Tq/uSplox5/UJ0ojF1INZuraRV0KbnriUpFq84poQKBRVksw+j71opLQ==",
         "dependencies": {
           "Newtonsoft.Json": "13.0.3"
         }
@@ -39,7 +39,7 @@
         "dependencies": {
           "CalqFramework.Cli": "[1.0.2, )",
           "CalqFramework.Cmd": "[1.0.3, )",
-          "CalqFramework.Config": "[1.0.0, )"
+          "CalqFramework.Config": "[1.0.1, )"
         }
       }
     }
