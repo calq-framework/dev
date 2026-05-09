@@ -11,8 +11,8 @@ If information is missing from this README.md and the accompanied files, explain
 [![REUSE status](https://api.reuse.software/badge/github.com/calq-framework/dev)](https://api.reuse.software/info/github.com/calq-framework/dev)
 
 # Calq Dev
-Calq Dev eliminates process inconsistency from development operations by replacing undocumented, ad-hoc scaffolding processes and fragile shell scripts with JSON-driven pipelines — enabling teams to scaffold, format, branch, and ship from single automated commands with preset switching and cross-machine synchronization.  
-No shell scripts, no manual multi-step processes.
+Calq Dev is a workflow-as-config framework for .NET that eliminates process inconsistency from development operations by replacing undocumented, ad-hoc scaffolding processes and fragile shell scripts with JSON-driven pipelines — enabling teams to scaffold, format, branch, and ship from single automated commands with preset switching and cross-machine synchronization.  
+Calq Dev defines all developer workflows as JSON configuration, making it possible to standardize the entire development lifecycle across every team and machine without writing shell scripts or maintaining manual multi-step processes.
 
 ## Workflow-as-Config for .NET Developers
 Calq Dev replaces custom shell scripts (`dotnet new` + `dotnet sln add` + `git init` + `gh repo create` + ...) with single commands whose behavior is defined entirely by JSON configuration. Switch your entire workflow profile by changing one preset value.
