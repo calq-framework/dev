@@ -11,32 +11,51 @@ If information is missing from this README.md and the accompanied files, explain
 [![REUSE status](https://api.reuse.software/badge/github.com/calq-framework/dev)](https://api.reuse.software/info/github.com/calq-framework/dev)
 
 # Calq Dev
-Calq Dev is a local development operations tool for .NET that eliminates process inconsistency by replacing undocumented, ad-hoc scaffolding processes and fragile shell scripts with JSON-configured commands — enabling teams to scaffold, format, branch, and ship from single automated commands with preset switching and cross-machine synchronization.  
-Calq Dev defines all developer operations as JSON configuration, making it possible to standardize the entire local development lifecycle across every team and machine without writing shell scripts or maintaining manual multi-step processes.
 
-## Local Development Operations for .NET
-Calq Dev replaces custom shell scripts (`dotnet new` + `dotnet sln add` + `git init` + `gh repo create` + ...) with single commands whose behavior is defined entirely by JSON configuration. Switch your entire command profile by changing one preset value.
+Calq Dev is a durable workflow automation tool. Designed for crash-safe local development automation without manual tool orchestration.
 
-## How Calq Dev Stacks Up
+## Table of Contents
 
-### Calq Dev vs. Shell Scripts
-| Feature | Calq Dev | Shell Scripts (Bash/PowerShell) |
-| :--- | :--- | :--- |
-| **Workflow Definition** | JSON Configuration | Imperative Code |
-| **Cross-Machine Sync** | ✅ (dotfiles integration) | ✅ (Manual) |
-| **Workflow Profiles** | ✅ (preset switching) | ❌ |
-| **Shell Autocomplete** | ✅ | ❌ |
-| **Cross-Platform** | ✅ | ❌ (Bash vs. PowerShell) |
-| **Ease of Use** | High (JSON + CLI) | Moderate (shell scripting) |
+- [Usage - Calq Dev](#usage---calq-dev)
+  - [1. Foundations](#1-foundations)
+    - [1.1 Installation](#11-installation)
+    - [1.2 Configuration directory](#12-configuration-directory)
+    - [1.3 Codespaces support](#13-codespaces-support)
+    - [1.4 Preflight checks](#14-preflight-checks)
+    - [1.5 Crash recovery](#15-crash-recovery)
+  - [2. Configuration & Customization](#2-configuration--customization)
+    - [2.1 Preset switching](#21-preset-switching)
+    - [2.2 Setting individual values](#22-setting-individual-values)
+    - [2.3 Dotfiles sync](#23-dotfiles-sync)
+    - [2.4 PipelineStep model](#24-pipelinestep-model)
+    - [2.5 Naming conventions](#25-naming-conventions)
+    - [2.6 Custom project types](#26-custom-project-types)
+    - [2.7 Custom format pipeline](#27-custom-format-pipeline)
+    - [2.8 Custom git workflow](#28-custom-git-workflow)
+  - [3. Project Scaffolding](#3-project-scaffolding)
+    - [3.1 Scaffolding pipeline](#31-scaffolding-pipeline)
+    - [3.2 Built-in project types](#32-built-in-project-types)
+    - [3.3 Organization repo cloning](#33-organization-repo-cloning)
+    - [3.4 Workflow template seeding](#34-workflow-template-seeding)
+    - [3.5 GitHub repository creation](#35-github-repository-creation)
+  - [4. Code Formatting](#4-code-formatting)
+    - [4.1 Format pipeline](#41-format-pipeline)
+    - [4.2 Multi-language support](#42-multi-language-support)
+  - [5. Git Workflow](#5-git-workflow)
+    - [5.1 Issue listing](#51-issue-listing)
+    - [5.2 Issue-driven branching](#52-issue-driven-branching)
+    - [5.3 Push](#53-push)
+    - [5.4 Merge](#54-merge)
+    - [5.5 Pull](#55-pull)
+    - [5.6 Dependency relocking](#56-dependency-relocking)
+- [Quick Start](#quick-start)
+- [License](#license)
 
+## Usage - Calq Dev
 
-## Usage
+### 1. Foundations
 
-### 1. Installation & Setup
-
-*How to install the tool and configure the environment.*
-
-#### How to Install Calq Dev
+#### 1.1 Installation
 
 Calq Dev is distributed as a .NET global tool.
 
@@ -50,212 +69,55 @@ dotnet tool install -g CalqFramework.Dev.Cli
 dev --help
 ```
 
-**Configuration directory:**
+**Key points:**
+- Requires `dotnet`, `git`, and `gh` CLI on the system `PATH`
+- All subcommands are available immediately after installation
+
+#### 1.2 Configuration directory
+
+Configuration files are stored in a single directory and created automatically on first use with sensible defaults.
+
 - Standard: `{AppData}/dev` (e.g., `~/.config/dev` on Linux, `%APPDATA%/dev` on Windows)
-- Codespaces: `~/dotfiles/.config/dev` (auto-detected via `CODESPACES` environment variable)
+- Codespaces: `~/dotfiles/.config/dev` (see [1.3 Codespaces support](#13-codespaces-support))
 
-Configuration files are created automatically on first use with sensible defaults. No manual setup required.
+**Key points:**
+- No manual setup required — all configuration files are generated with defaults on first access
+- Files follow the naming convention `{FullTypeName}.{preset}.json`
 
-See also: [How to Manage Configuration](#how-to-manage-configuration)
+#### 1.3 Codespaces support
+
+When the `CODESPACES` environment variable is detected, the configuration directory resolves to `~/dotfiles/.config/dev/` instead of the standard platform path.
+
+**Key points:**
+- Detection is automatic — no user intervention required
+- Enables persistent configuration across ephemeral Codespaces instances via the dotfiles repository
+
+#### 1.4 Preflight checks
+
+Before executing a multi-step pipeline, Calq Dev verifies that all required external tools are available on `PATH`.
+
+**Key points:**
+- Applies to `dev new` (checks `dotnet`, `gh`, `git`) and `dev format` (checks tools referenced in pipeline steps)
+- Failures are reported before any work begins — no partial execution from missing dependencies
+
+See also: [1.1 Installation](#11-installation)
+
+#### 1.5 Crash recovery
+
+Calq Dev is built on Calq CMD, a durable execution framework. All multi-step operations persist progress after each completed step. If a command is interrupted or fails mid-execution, re-running the same command resumes from the last completed step.
+
+**Key points:**
+- Applies to all pipelines: scaffolding, formatting, and git workflow commands
+- No manual cleanup required after interruption — re-run the command to continue
+- Completed steps are not re-executed on resume
 
 ---
 
-### 2. Project Scaffolding
+### 2. Configuration & Customization
 
-*How to bootstrap new repositories from configurable templates.*
+#### 2.1 Preset switching
 
-#### How to Scaffold Projects with `new`
-
-`dev new` runs a full scaffolding pipeline from a single command: creates projects, solutions, references, injects `.csproj` metadata, seeds GitHub workflow templates, and optionally creates a GitHub repository.
-
-```bash
-# Scaffold a classlib with test project
-dev new classlib CalqFramework.Foo
-
-# Scaffold a console app
-dev new console CalqFramework.Bar
-
-# Scaffold a tool (library + CLI + tests)
-dev new tool CalqFramework.Baz
-
-# Create a public GitHub repo during scaffolding
-dev new classlib CalqFramework.Foo --public
-
-# Override language and organization
-dev new classlib CalqFramework.Foo --lang "F#" --organization my-org
-```
-
-**What `new` does automatically:**
-1. Clones `.github` and `.license` repos from the organization (optional steps — warns on failure)
-2. Runs `dotnet new` for each project in the template
-3. Creates the solution and adds project references
-4. Injects `.csproj` XML properties (`PackageId`, `Version`, `RootNamespace`, etc.)
-5. Seeds `.github/workflows/` from `workflow-templates/` if present
-6. Optionally runs `git init` + `gh repo create` + initial push
-
-**Built-in project types:**
-
-| Type | Projects Created |
-| :--- | :--- |
-| `classlib` | Library + xUnit test project + solution |
-| `console` | Console app + solution |
-| `tool` | Library + CLI console + xUnit test project + solution |
-
-**Key points:**
-- Project types are fully configurable — add your own via `NewConfig.ProjectTypes`
-- Name follows `Organization.Project` convention — the part after the first dot is kebab-cased into the project subdirectory name (e.g., `CalqFramework.Something` creates a `something/` directory)
-- Projects and solutions use the full name (e.g., `CalqFramework.Something.csproj`, `CalqFramework.Something.sln`)
-- `.csproj` injection is template-aware: different XML properties for `classlib` vs `console` vs `xunit`
-- Missing tools are detected before execution starts (preflight check)
-
-See also: [How to Customize Project Templates](#how-to-customize-project-templates)
-
----
-
-### 3. Code Formatting
-
-*How to run the configurable format pipeline.*
-
-#### How to Format Code with `format`
-
-`dev format` runs a multi-step formatting pipeline. Each step is a shell command with optional file-pattern guards and per-target execution.
-
-```bash
-# Format current directory
-dev format
-
-# Format a specific directory
-dev format --dir /path/to/project
-```
-
-**Default pipeline:**
-
-| Step | Command | Condition |
-| :--- | :--- | :--- |
-| 1 | `dotnet build --no-restore {target}` | Targets: `*.sln`, `*.slnx` → `*.*proj` |
-| 2 | `jb cleanupcode {dir} --profile="Built-in: Full Cleanup"` | Only if `*.csproj` files exist |
-| 3 | `fantomas {dir}` | Only if `*.fsproj` files exist |
-| 4 | `dotnet format {target} --verbosity diag --severity info` | Targets: `*.sln`, `*.slnx` → `*.*proj` |
-| 5 | `dotnet build --no-restore {target}` | Targets: `*.sln`, `*.slnx` → `*.*proj` |
-
-**Key points:**
-- Steps with `FilePattern` are skipped when no matching files exist in the target directory
-- Steps with `TargetPatterns` run once per discovered target file, substituting `{target}`. Patterns are grouped by priority: the first group that yields exactly one file wins; otherwise all results are combined.
-- Placeholders: `{dir}` = target directory, `{target}` = individual discovered target file
-- Missing tools are detected before the pipeline starts
-- The entire pipeline is configurable via `FormatConfig`
-
-See also: [How to Customize the Format Pipeline](#how-to-customize-the-format-pipeline)
-
----
-
-### 4. Git Workflow
-
-*How to manage issue-driven branching, pushing, and merging.*
-
-#### How to Switch Branches with `switch`
-
-`dev switch` creates or switches to an issue branch. Pass an issue number to branch from an existing issue, or a title to create a new issue automatically.
-
-```bash
-# Switch to branch issues/42
-dev switch 42
-
-# Create a new issue titled "Add logging" and switch to its branch
-dev switch "Add logging"
-```
-
-**Key points:**
-- Branch naming: `{BranchPrefix}{issueId}` (default prefix: `issues/`)
-- When `AutoCreateIssue` is enabled (default), passing a string creates a GitHub issue and branches from its ID
-- Uses stash-apply safety: dirty working tree is stashed before switching and restored after
-
-#### How to Push with `push`
-
-`dev push` pushes to remote with branch-aware behavior.
-
-```bash
-dev push
-```
-
-**On main branch:**
-- Pulls with rebase first, then pushes to origin
-
-**On feature branch:**
-- Pulls with rebase first
-- Pushes with `--force-with-lease` (configurable)
-- Auto-creates a PR linking the issue from the branch name (configurable)
-- PR title format: `(#42) Issue Title` (configurable via `PrTitleFormat`)
-
-#### How to Merge with `merge`
-
-`dev merge` squash-merges the current feature branch PR and cleans up everything.
-
-```bash
-dev merge
-```
-
-**What `merge` does automatically:**
-1. Pushes the current branch (calls `push` internally)
-2. Squash-merges the PR via `gh pr merge --squash --delete-branch`
-3. Closes the linked issue (if branch name contains an issue ID)
-4. Switches to main and deletes the local feature branch
-5. Pulls latest main
-
-**Key points:**
-- Cannot be run from main branch
-- Merge strategy is configurable (`squash`, `merge`, `rebase`)
-- Each step (delete branch, close issue, pull after merge) is individually toggleable
-
-#### How to Pull with `pull`
-
-`dev pull` pulls from remote with rebase, regardless of current branch.
-
-```bash
-dev pull
-```
-
-**Default behavior:** `git pull --rebase --autostash origin main`
-
-The pull steps are configurable via `UtilityConfig.Pull` using the same `PipelineStep` model as the format pipeline.
-
-#### How to Manage Dependencies with `relock`
-
-`dev relock` forces re-evaluation of the dependency graph and updates lock files.
-
-```bash
-dev relock
-```
-
-**Default behavior:** `dotnet restore --no-cache --force-evaluate --use-lock-file`
-
-#### How to List Issues with `issues`
-
-`dev issues` lists open issues from GitHub.
-
-```bash
-dev issues
-```
-
-**Default behavior:** `gh issue list --limit 20 --search "is:open no:assignee sort:created-desc"`
-
----
-
-### 5. Configuration Management
-
-*How to view, edit, and sync configuration.*
-
-#### How to Manage Configuration
-
-The `config` submodule provides commands for managing the configuration directory and syncing with dotfiles.
-
-**Print config directory path:**
-
-```bash
-dev config path
-```
-
-**Get or set the active workflow preset:**
+All configuration POCOs are grouped under a workflow preset. Switching the preset reloads all subcommand configurations from the new preset's JSON files.
 
 ```bash
 # Print current preset
@@ -265,9 +127,16 @@ dev config preset
 dev config preset my-workflow
 ```
 
-Switching the preset reloads all subcommand configurations from the new preset's JSON files.
+**Key points:**
+- All config POCOs use `[PresetGroup("Workflow")]` — switching the master preset's `Workflow` value cascades to all of them
+- Config files follow the naming convention `{FullTypeName}.{preset}.json`
+- Enables maintaining separate configurations for different workflows (e.g., personal projects vs team projects)
 
-**Set individual config values:**
+See also: [1.2 Configuration directory](#12-configuration-directory)
+
+#### 2.2 Setting individual values
+
+`dev config set` modifies a single configuration value by class name and dot-separated property path.
 
 ```bash
 dev config set NewConfig Organization my-org
@@ -276,9 +145,22 @@ dev config set MergeConfig MergeStrategy rebase
 dev config set FormatConfig Steps.0.Command "dotnet build {dir}"
 ```
 
-The first argument is the config class name, the second is a dot-separated property path, and the third is the value.
+**Print config directory path:**
 
-**Sync config with dotfiles (for Codespaces):**
+```bash
+dev config path
+```
+
+**Key points:**
+- The first argument is the config class name, the second is the property path, and the third is the value
+- Changes are persisted to the JSON file immediately
+- Edit JSON files directly as an alternative to `dev config set`
+
+See also: [1.2 Configuration directory](#12-configuration-directory), [2.1 Preset switching](#21-preset-switching)
+
+#### 2.3 Dotfiles sync
+
+Sync configuration with a dotfiles repository for portability across machines and Codespaces instances.
 
 ```bash
 # Push local config to dotfiles repo
@@ -288,17 +170,43 @@ dev config push
 dev config pull
 ```
 
-`push` copies config files to `~/dotfiles/.config/dev/`, commits, and pushes. `pull` does the reverse.
+**Key points:**
+- `push` copies config files to `~/dotfiles/.config/dev/`, commits, and pushes
+- `pull` copies from `~/dotfiles/.config/dev/` to the local config directory
+- Enables consistent configuration across ephemeral environments
 
----
+See also: [1.3 Codespaces support](#13-codespaces-support), [1.2 Configuration directory](#12-configuration-directory)
 
-### 6. Customization
+#### 2.4 PipelineStep model
 
-*How to tailor every subcommand's behavior via JSON configuration.*
+All configurable pipelines (format, pull, relock, issues) share the same step model.
 
-#### How to Customize Project Templates
+| Property | Type | Description |
+| :--- | :--- | :--- |
+| `Command` | string | Shell command. Supports `{dir}` and `{target}` placeholders. |
+| `FilePattern` | string? | Glob pattern — step is skipped if no matching files exist. |
+| `TargetPatterns` | list of list of string? | Ordered glob-pattern groups for target discovery. First group yielding exactly one file wins; otherwise all results are combined. When null, command runs once with `{dir}` only. |
 
-Edit `NewConfig` to define custom project types, change the scaffolding steps, or modify `.csproj` injection rules.
+**Key points:**
+- `FilePattern` acts as a guard: if no files match the pattern in the target directory, the step is skipped entirely
+- `TargetPatterns` enables per-file execution: the step runs once for each discovered target, substituting `{target}` in the command
+- When `TargetPatterns` is null, the command executes once with only `{dir}` available as a placeholder
+
+#### 2.5 Naming conventions
+
+The project name follows the `Organization.Project` convention.
+
+```bash
+dev new classlib CalqFramework.Something
+```
+
+**Key points:**
+- The part after the first dot is kebab-cased into the project subdirectory name (e.g., `CalqFramework.Something` creates a `something/` directory)
+- Projects and solutions use the full name (e.g., `CalqFramework.Something.csproj`, `CalqFramework.Something.sln`)
+
+#### 2.6 Custom project types
+
+Edit `NewConfig` to define custom project types, modify the scaffolding steps, or customize `.csproj` injection rules.
 
 **Add a custom project type:**
 
@@ -349,11 +257,11 @@ Or edit the JSON file directly at `{configDir}/CalqFramework.Dev.Config.NewConfi
 }
 ```
 
-See also: [How to Scaffold Projects with `new`](#how-to-scaffold-projects-with-new)
+See also: [2.2 Setting individual values](#22-setting-individual-values), [2.5 Naming conventions](#25-naming-conventions)
 
-#### How to Customize the Format Pipeline
+#### 2.7 Custom format pipeline
 
-Edit `FormatConfig` to change the formatting steps.
+Edit `FormatConfig` to replace or extend the formatting steps.
 
 **Example: minimal pipeline (dotnet format only):**
 
@@ -392,19 +300,11 @@ Edit `FormatConfig` to change the formatting steps.
 }
 ```
 
-**PipelineStep properties:**
+See also: [2.4 PipelineStep model](#24-pipelinestep-model), [1.4 Preflight checks](#14-preflight-checks)
 
-| Property | Type | Description |
-| :--- | :--- | :--- |
-| `Command` | string | Shell command. Supports `{dir}` and `{target}` placeholders. |
-| `FilePattern` | string? | Glob pattern — step is skipped if no matching files exist. |
-| `TargetPatterns` | list of list of string? | Ordered glob-pattern groups for target discovery. First group yielding exactly one file wins; otherwise all results are combined. When null, command runs once with `{dir}` only. |
+#### 2.8 Custom git workflow
 
-See also: [How to Format Code with `format`](#how-to-format-code-with-format)
-
-#### How to Customize Git Workflow
-
-Each git workflow subcommand is driven by its own config POCO.
+Each git workflow subcommand is driven by its own configuration POCO.
 
 **SwitchConfig:**
 
@@ -449,14 +349,263 @@ Each git workflow subcommand is driven by its own config POCO.
 }
 ```
 
-All utility commands use the same `PipelineStep` model as `FormatConfig`, so you can add `FilePattern` guards and `TargetPatterns` to any step.
-
 **Key points:**
-- All config POCOs use `[PresetGroup("Workflow")]` — switching the master preset's `Workflow` value cascades to all of them
-- Config files follow the naming convention `{FullTypeName}.{preset}.json`
+- All utility commands use the same `PipelineStep` model as `FormatConfig`
 - Edit via `dev config set` or directly in the JSON files
 
-See also: [How to Manage Configuration](#how-to-manage-configuration)
+See also: [2.4 PipelineStep model](#24-pipelinestep-model)
+
+---
+
+### 3. Project Scaffolding
+
+#### 3.1 Scaffolding pipeline
+
+`dev new` executes a full scaffolding pipeline from a single command: creates projects, solutions, references, injects `.csproj` metadata, seeds GitHub workflow templates, and optionally creates a GitHub repository.
+
+```bash
+# Scaffold a classlib with test project
+dev new classlib CalqFramework.Foo
+
+# Scaffold a console app
+dev new console CalqFramework.Bar
+
+# Scaffold a tool (library + CLI + tests)
+dev new tool CalqFramework.Baz
+
+# Create a public GitHub repo during scaffolding
+dev new classlib CalqFramework.Foo --public
+
+# Override language and organization
+dev new classlib CalqFramework.Foo --lang "F#" --organization my-org
+```
+
+**What `new` does automatically:**
+1. Clones `.github` and `.license` repos from the organization (optional — warns on failure)
+2. Runs `dotnet new` for each project in the template
+3. Creates the solution and adds project references
+4. Injects `.csproj` XML properties (`PackageId`, `Version`, `RootNamespace`, etc.)
+5. Seeds `.github/workflows/` from `workflow-templates/` if present
+6. Optionally runs `git init` + `gh repo create` + initial push
+
+**Key points:**
+- Project types are fully configurable — add your own via `NewConfig.ProjectTypes`
+- `.csproj` injection is template-aware: different XML properties for `classlib` vs `console` vs `xunit`
+
+See also: [2.6 Custom project types](#26-custom-project-types), [1.5 Crash recovery](#15-crash-recovery), [2.5 Naming conventions](#25-naming-conventions)
+
+#### 3.2 Built-in project types
+
+| Type | Projects Created |
+| :--- | :--- |
+| `classlib` | Library + xUnit test project + solution |
+| `console` | Console app + solution |
+| `tool` | Library + CLI console + xUnit test project + solution |
+
+**Key points:**
+- Each type defines an ordered list of shell commands executed during scaffolding
+- All types support the `--lang` flag for language override
+
+See also: [2.6 Custom project types](#26-custom-project-types), [3.1 Scaffolding pipeline](#31-scaffolding-pipeline)
+
+#### 3.3 Organization repo cloning
+
+The first step of the scaffolding pipeline clones `.github` and `.license` repositories from the configured organization into the new project directory.
+
+**Key points:**
+- Provides shared editor configuration, workflow templates, and license files
+- Cloning is optional — the pipeline continues with a warning if the repositories do not exist
+- The organization is configurable via `NewConfig.Organization`
+
+See also: [2.6 Custom project types](#26-custom-project-types)
+
+#### 3.4 Workflow template seeding
+
+If the cloned `.github` repository contains a `workflow-templates/` directory, those templates are copied into the new project's `.github/workflows/` directory.
+
+**Key points:**
+- Enables consistent CI/CD configuration across all projects in an organization
+- Templates are copied once during scaffolding — subsequent changes to the templates do not propagate automatically
+
+See also: [3.3 Organization repo cloning](#33-organization-repo-cloning)
+
+#### 3.5 GitHub repository creation
+
+When the `--public`, `--private`, or `--internal` flag is passed, `dev new` creates a GitHub repository after scaffolding completes.
+
+```bash
+dev new classlib CalqFramework.Foo --public
+```
+
+**Key points:**
+- Runs `git init`, `gh repo create`, and pushes the initial commit
+- Visibility defaults to private when no flag is specified and repository creation is triggered
+- Repository creation is skipped entirely when no visibility flag is provided
+
+See also: [2.6 Custom project types](#26-custom-project-types)
+
+---
+
+### 4. Code Formatting
+
+#### 4.1 Format pipeline
+
+`dev format` executes a multi-step formatting pipeline. Each step is a shell command with optional file-pattern guards and per-target execution.
+
+```bash
+# Format current directory
+dev format
+
+# Format a specific directory
+dev format --dir /path/to/project
+```
+
+**Default pipeline:**
+
+| Step | Command | Condition |
+| :--- | :--- | :--- |
+| 1 | `dotnet build --no-restore {target}` | Targets: `*.sln`, `*.slnx` → `*.*proj` |
+| 2 | `jb cleanupcode {dir} --profile="Built-in: Full Cleanup"` | Only if `*.csproj` files exist |
+| 3 | `fantomas {dir}` | Only if `*.fsproj` files exist |
+| 4 | `dotnet format {target} --verbosity diag --severity info` | Targets: `*.sln`, `*.slnx` → `*.*proj` |
+| 5 | `dotnet build --no-restore {target}` | Targets: `*.sln`, `*.slnx` → `*.*proj` |
+
+**Key points:**
+- Steps with `FilePattern` are skipped when no matching files exist in the target directory
+- Steps with `TargetPatterns` run once per discovered target file, substituting `{target}`. Patterns are grouped by priority: the first group that yields exactly one file wins; otherwise all results are combined.
+- Placeholders: `{dir}` = target directory, `{target}` = individual discovered target file
+- The entire pipeline is configurable via `FormatConfig`
+
+See also: [2.7 Custom format pipeline](#27-custom-format-pipeline), [2.4 PipelineStep model](#24-pipelinestep-model), [1.4 Preflight checks](#14-preflight-checks)
+
+#### 4.2 Multi-language support
+
+The format pipeline supports multiple languages in a single repository by combining `FilePattern` guards with language-specific commands.
+
+```bash
+# A repository with both .NET and Rust code uses separate steps for each
+dev format
+```
+
+**Key points:**
+- Each step can target a different language via its `FilePattern` (e.g., `*.csproj` for .NET, `Cargo.toml` for Rust)
+- Steps for languages not present in the target directory are automatically skipped
+
+See also: [2.7 Custom format pipeline](#27-custom-format-pipeline), [2.4 PipelineStep model](#24-pipelinestep-model)
+
+---
+
+### 5. Git Workflow
+
+#### 5.1 Issue listing
+
+`dev issues` lists open issues from GitHub.
+
+```bash
+dev issues
+```
+
+**Default behavior:** `gh issue list --limit 20 --search "is:open no:assignee sort:created-desc"`
+
+**Key points:**
+- The command is configurable via `UtilityConfig.Issues`
+- `IssueCompletionCommand` provides issue number completion for shell auto-complete
+
+See also: [2.8 Custom git workflow](#28-custom-git-workflow), [2.4 PipelineStep model](#24-pipelinestep-model)
+
+#### 5.2 Issue-driven branching
+
+`dev switch` creates or switches to an issue branch. Pass an issue number to branch from an existing issue, or a title to create a new issue automatically.
+
+```bash
+# Switch to branch issues/42
+dev switch 42
+
+# Create a new issue titled "Add logging" and switch to its branch
+dev switch "Add logging"
+```
+
+**Key points:**
+- Branch naming: `{BranchPrefix}{issueId}` (default prefix: `issues/`)
+- When `AutoCreateIssue` is enabled (default), passing a string creates a GitHub issue via `gh` and branches from its ID
+- Uses stash-apply safety: dirty working tree is stashed before switching and restored after
+
+See also: [2.8 Custom git workflow](#28-custom-git-workflow), [5.1 Issue listing](#51-issue-listing)
+
+#### 5.3 Push
+
+`dev push` pushes to remote with branch-aware behavior.
+
+```bash
+dev push
+```
+
+**On main branch:**
+- Pulls with rebase first, then pushes to origin
+
+**On feature branch:**
+- Pulls with rebase first
+- Pushes with `--force-with-lease` (configurable)
+- Auto-creates a PR linking the issue from the branch name (configurable)
+- PR title format: `(#42) Issue Title` (configurable via `PrTitleFormat`)
+
+**Key points:**
+- Force-with-lease prevents overwriting remote commits not present locally
+- PR creation and title format are individually configurable
+
+See also: [2.8 Custom git workflow](#28-custom-git-workflow), [5.2 Issue-driven branching](#52-issue-driven-branching)
+
+#### 5.4 Merge
+
+`dev merge` squash-merges the current feature branch PR and performs full cleanup.
+
+```bash
+dev merge
+```
+
+**What `merge` does automatically:**
+1. Pushes the current branch (calls `push` internally)
+2. Squash-merges the PR via `gh pr merge --squash --delete-branch`
+3. Closes the linked issue (if branch name contains an issue ID)
+4. Switches to main and deletes the local feature branch
+5. Pulls latest main
+
+**Key points:**
+- Cannot be run from main branch
+- Merge strategy is configurable (`squash`, `merge`, `rebase`)
+- Each step (delete branch, close issue, pull after merge) is individually toggleable
+
+See also: [2.8 Custom git workflow](#28-custom-git-workflow), [5.3 Push](#53-push), [5.2 Issue-driven branching](#52-issue-driven-branching)
+
+#### 5.5 Pull
+
+`dev pull` pulls from remote with rebase, regardless of current branch.
+
+```bash
+dev pull
+```
+
+**Default behavior:** `git pull --rebase --autostash origin main`
+
+**Key points:**
+- The pull command is configurable via `UtilityConfig.Pull` using the same `PipelineStep` model as the format pipeline
+
+See also: [2.4 PipelineStep model](#24-pipelinestep-model)
+
+#### 5.6 Dependency relocking
+
+`dev relock` forces re-evaluation of the dependency graph and updates lock files.
+
+```bash
+dev relock
+```
+
+**Default behavior:** `dotnet restore --no-cache --force-evaluate --use-lock-file`
+
+**Key points:**
+- The command is configurable via `UtilityConfig.Relock`
+
+See also: [2.8 Custom git workflow](#28-custom-git-workflow), [2.4 PipelineStep model](#24-pipelinestep-model)
 
 ## Quick Start
 
@@ -480,6 +629,7 @@ dev format
 **Issue-driven workflow:**
 
 ```bash
+dev issues              # list open issues
 dev switch 42          # create branch issues/42
 # ... make changes ...
 dev push               # push + auto-create PR
@@ -487,4 +637,5 @@ dev merge              # squash-merge + cleanup
 ```
 
 ## License
+
 Calq Dev is licensed under the PolyForm Strict License with a Commercial Use Grant.
