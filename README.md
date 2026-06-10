@@ -14,8 +14,36 @@ If information is missing from this README.md and the accompanied files, explain
 
 Calq Dev is a durable workflow automation tool. Designed for crash-safe local development automation without manual tool orchestration.
 
+## Comparison
+
+### Project Scaffolding & Automation
+
+| Feature | Calq Dev | Project Scaffolders | Task Runners | Monorepo Orchestrators | Shell Scripts |
+|---|---|---|---|---|---|
+| Crash recovery (resume after failure) | ✅ durable per step | ❌ | ❌ | ⚠️ input-hash cache hits only | ❌ |
+| End-to-end project setup (scaffold + CI + repo) | ✅ single command | ⚠️ scaffold only | ❌ user-composed tasks | ⚠️ workspace init only | ⚠️ manual scripting |
+| Organization-wide consistency | ✅ clones shared repos (.github, .license) | ⚠️ template repos | ❌ | ⚠️ generators | ⚠️ manual setup |
+| Multi-language format pipeline | ✅ guard-based step skipping | ❌ not a formatter | ⚠️ user-defined tasks | ⚠️ per-project config | ⚠️ manual conditionals |
+| Configuration portability (presets, Codespaces) | ✅ named presets + auto dotfiles | ❌ | ❌ | ❌ | ⚠️ manual dotfiles |
+| Configurable without code changes | ✅ JSON config | ⚠️ template editing | ⚠️ Makefile/Justfile editing | ⚠️ config files | ❌ script editing |
+| Custom project types | ✅ JSON-defined command lists | ✅ custom generators | ✅ user-defined tasks | ✅ workspace generators | ✅ any script |
+| Ecosystem / language reach | ⚠️ .NET-centric defaults | ✅ language-agnostic | ✅ language-agnostic | ✅ language-agnostic | ✅ any tool |
+
+### Git Workflow
+
+| Feature | Calq Dev | Git Flow Tools | GitHub CLI + Scripts | Git Hooks | IDE Git Integrations |
+|---|---|---|---|---|---|
+| Crash recovery (resume after failure) | ✅ durable per step | ❌ | ❌ | ❌ | ❌ |
+| Issue-to-branch-to-PR in single commands | ✅ built-in (`switch`, `push`, `merge`) | ⚠️ branch only | ⚠️ multi-command | ❌ | ⚠️ varies by IDE |
+| Compound operations (merge + close + cleanup) | ✅ single command | ⚠️ manual steps | ⚠️ multi-command | ❌ | ⚠️ varies by IDE |
+| Stash-safe branch switching | ✅ automatic stash/restore | ❌ | ❌ | ❌ | ✅ some IDEs |
+| Configurable workflow (strategy, PR format) | ✅ JSON presets + dotfiles sync | ⚠️ opinionated | ⚠️ manual flags | ❌ | ✅ settings-based |
+| Shell completion (issue numbers) | ✅ built-in | ❌ | ✅ `gh` completions | ❌ | ✅ built-in |
+| No dedicated infrastructure | ✅ git + gh CLI only | ✅ git only | ✅ gh + git | ✅ git hooks | ✅ IDE-native |
+
 ## Table of Contents
 
+- [Comparison](#comparison)
 - [Usage - Calq Dev](#usage---calq-dev)
   - [1. Foundations](#1-foundations)
     - [1.1 Installation](#11-installation)
